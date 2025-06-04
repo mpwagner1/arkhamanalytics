@@ -1,0 +1,20 @@
+# Ignore Databricks and Python temporary files
+*.iml
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+.ipynb_checkpoints/
+.dbx/
+.dist/
+build/
+dist/
+
+# Ignore local config or credentials
+.env
+*.secret
+*.key
+
+# Ignore workspace-generated files
+.DS_Store
+workspace/.idea/
