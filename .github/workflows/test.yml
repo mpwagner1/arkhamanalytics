@@ -39,6 +39,7 @@ jobs:
           echo "Some files need formatting. Running Black to fix..."
           black ingestion/arkhamanalytics ingestion/tests
 
-      - name: Lint with Flake8
+      - name: Lint with Flake8 (via pyproject.toml)
         run: |
-          flake8 ingestion/arkhamanalytics ingestion/tests
+          flake8 --config=pyproject.toml ingestion/arkhamanalytics ingestion/tests
+
