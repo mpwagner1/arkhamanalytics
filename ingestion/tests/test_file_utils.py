@@ -1,5 +1,5 @@
 import pytest
-from arkhamanalytics.modules.file_utils import get_file_extension, detect_file_encoding
+from arkhamanalytics.file_utils import get_file_extension, detect_file_encoding
 
 
 @pytest.mark.parametrize("filename,expected", [
