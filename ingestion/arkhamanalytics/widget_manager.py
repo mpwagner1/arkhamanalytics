@@ -106,7 +106,7 @@ def get_config_from_widgets() -> ProcessingConfig:
         skip_lines = 0
 
     start_cell = dbutils.widgets.get("start_cell")
-
+    
     return ProcessingConfig(
         container_name=dbutils.widgets.get("container_name"),
         file_pattern=dbutils.widgets.get("file_pattern"),
@@ -117,7 +117,9 @@ def get_config_from_widgets() -> ProcessingConfig:
         skip_lines=skip_lines,
         audit_table=dbutils.widgets.get("audit_table"),
         sheet_name=dbutils.widgets.get("sheet_name"),
-        excel_starting_cell=start_cell,
+        excel_starting_cell=(
+            start_cell
+        ),
     )
 
 
