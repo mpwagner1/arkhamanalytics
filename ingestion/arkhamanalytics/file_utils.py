@@ -73,15 +73,20 @@ def read_file_as_df(
         else:
             raise ValueError(f"Unsupported file format: {file_format}")
 
+    except Exception as e:
+        logger.error(f"Error reading file {file_path}: {str(e)}")
+        raise RuntimeError(f"Failed to read file {file_path}: {str(e)}")
+
+
 def detect_and_read_file(
     spark: SparkSession,
     file_path: str,
-    encoding: Optional[str] = None
+    encoding: Optional[str] = None,
 ) -> DataFrame:
-    """Convenience wrapper that detects file format and reads file"""
+    """Convenience wrapper to detect file format and read the file."""
     try:
         file_format = get_file_extension(file_path)
         return read_file_as_df(spark, file_path, file_format, encoding)
     except Exception as e:
-        logger.error(f"Failed to read file {file_path}: {str(e)}")
-        raise
+        logger.error(f"Error in detect_and_read_file: {str(e)}")
+        raise RuntimeError(f"Failed to detect/read file {file_path}: {str(e)}")
