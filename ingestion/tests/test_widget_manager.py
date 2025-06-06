@@ -1,12 +1,12 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from arkhamanalytics.modules.widget_manager import WidgetManager
+from arkhamanalytics.widget_manager import WidgetManager
 
 
 @pytest.fixture
 def mock_dbutils():
     """Fixture to patch dbutils.widgets for all tests in this file."""
-    with patch("arkhamanalytics.modules.widget_manager.dbutils") as mock:
+    with patch("arkhamanalytics.widget_manager.dbutils") as mock:
         mock.widgets.text = MagicMock()
         mock.widgets.dropdown = MagicMock()
         mock.widgets.combobox = MagicMock()

@@ -1,6 +1,6 @@
 import pytest
 from pyspark.sql import SparkSession
-from arkhamanalytics.modules.audit_logger import log_ingestion_audit
+from arkhamanalytics.audit_logger import log_ingestion_audit
 from delta import configure_spark_with_delta_pip
 
 
