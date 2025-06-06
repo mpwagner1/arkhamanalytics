@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 from ingestion.modules.widget_manager import WidgetManager
 
+
 @pytest.fixture
 def mock_dbutils():
     """Fixture to patch dbutils.widgets for all tests in this file."""
