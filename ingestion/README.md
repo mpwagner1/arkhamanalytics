@@ -1,13 +1,12 @@
-
 ---
 
 ## 🚀 How It Works
 
-1. **Read input files** with flexible encoding and format support
-2. **Clean and transform** input columns using standardized logic
-3. **Validate schema** against expected structure
-4. **Log results** to a centralized Delta audit table
-5. **Drive configurations** via Databricks widgets for full reusability
+1. **Read input files** with flexible encoding and format support  
+2. **Clean and transform** input columns using standardized logic  
+3. **Validate schema** against expected structure  
+4. **Log results** to a centralized Delta audit table  
+5. **Drive configurations** via Databricks widgets for full reusability  
 
 ---
 
@@ -23,28 +22,18 @@
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing and Linting
 
-All modules are designed for unit testing using `pytest`. You can add tests to `/tests/` and run them locally or via CI/CD.
+This project is continuously tested using GitHub Actions. Each push and pull request to `main` will:
 
----
+- ✅ Run `pytest` to validate all unit tests  
+- ✅ Use `black` to enforce consistent code formatting (auto-fixes if needed)  
+- ✅ Use `flake8` to lint the codebase against style and syntax issues  
 
-## ✅ Example Ingestion Flow
+### ✅ Local Development Setup
 
-```python
-from file_utils import read_file_as_df
-from schema_utils import validate_column_names
-from transformations import clean_text_column
-from audit_logger import log_ingestion_audit
-from widget_manager import WidgetManager
+To match CI/CD enforcement locally, install [pre-commit](https://pre-commit.com/):
 
-widgets = WidgetManager()
-widgets.create("file_path", "/mnt/raw/input.csv")
-widgets.create("env", "dev", widget_type="dropdown", choices=["dev", "prod"])
-
-df = read_file_as_df(spark, widgets.get("file_path"), "csv")
-
-df = clean_text_column(df, "supplier_name")
-is_valid, missing, unexpected = validate_column_names(df, expected_columns)
-
-log_ingestion_audit(spark, "/mnt/logs/ingestion_audit/", ..., status="SUCCESS")
+```bash
+pip install pre-commit
+pre-commit install
