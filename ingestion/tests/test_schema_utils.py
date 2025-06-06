@@ -1,5 +1,5 @@
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
-from ingestion.modules import schema_utils
+from ingestion.arkhamanalytics import schema_utils
 
 
 def test_get_column_names(spark):
