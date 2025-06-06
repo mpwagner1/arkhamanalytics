@@ -1,7 +1,13 @@
 from pyspark.sql import DataFrame
 from pyspark.sql.types import StructType
-from typing import List, Dict, Tuple, Literal, TypedDict
-
+from typing import (
+    List,
+    Tuple,
+    Union,
+    Dict,
+    Literal,
+    Optional,
+)
 
 # TypedDict for more readable schema definitions
 class SchemaDefinition(TypedDict):
