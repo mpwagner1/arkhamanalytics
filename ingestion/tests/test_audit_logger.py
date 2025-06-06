@@ -4,6 +4,7 @@ from ingestion.modules.audit_logger import log_ingestion_audit
 import os
 from delta import configure_spark_with_delta_pip
 
+
 @pytest.fixture(scope="module")
 def spark():
     builder = SparkSession.builder \
