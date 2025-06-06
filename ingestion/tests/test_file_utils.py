@@ -1,5 +1,5 @@
 import pytest
-from modules.file_utils import get_file_extension, detect_file_encoding
+from ingestion.modules.file_utils import get_file_extension, detect_file_encoding
 
 @pytest.mark.parametrize("filename,expected", [
     ("file.csv", "csv"),
