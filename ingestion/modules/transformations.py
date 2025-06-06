@@ -25,10 +25,9 @@ def remove_currency_symbols(df: DataFrame, column_name: str, output_col: str) ->
     """Remove currency symbols and cast to float."""
     return df.withColumn(output_col, regexp_replace(col(column_name), r"[^0-9.]", "").cast("float"))
 
-def fill_nulls(df: DataFrame, columns: List[str], fill_value) -> DataFrame:
+def fill_nulls(df: DataFrame, fill_map: dict[str, Any]) -> DataFrame:
     """Replace nulls in given columns with a default value."""
-    return df.fillna({col: fill_value for col in columns})
-
+    return df.fillna(fill_map)
 
 def normalize_posting_period(df: DataFrame, column_name: str, new_column_name: str = "posting_date") -> DataFrame:
     """
