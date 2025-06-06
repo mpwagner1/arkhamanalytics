@@ -2,6 +2,7 @@ import pytest
 from pyspark.sql import SparkSession
 from delta import configure_spark_with_delta_pip
 
+
 @pytest.fixture(scope="session")
 def spark():
     """Provide a session-wide SparkSession with Delta enabled."""
