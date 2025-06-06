@@ -25,7 +25,7 @@ jobs:
 
       - name: Run tests with Pytest
         run: |
-          PYTHONPATH=. pytest ingestion/tests/ --maxfail=3 --disable-warnings -v
+          PYTHONPATH=ingestion pytest ingestion/tests/ --maxfail=3 --disable-warnings -v
 
       - name: Check formatting with Black
         id: black_check
