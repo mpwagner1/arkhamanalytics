@@ -77,7 +77,7 @@ def log_ingestion_audit(
         writer = df.write.format("delta").mode(write_mode)
         if target_type == "path":
             writer.save(audit_target)
-        else:  # must be "table"
+        else:  
             writer.saveAsTable(audit_target)
 
         logger.info(f"Audit log written to {audit_target} ({target_type})")
