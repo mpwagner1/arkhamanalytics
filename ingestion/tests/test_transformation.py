@@ -30,6 +30,8 @@ def test_fill_nulls_applies_correctly(spark):
     assert result.filter("desc = 'Unknown'").count() == 1
 
 def test_normalize_posting_period(spark):
+    spark.conf.set("spark.sql.legacy.timeParserPolicy", "LEGACY")
+
     df = spark.createDataFrame(
         [("05/2022",), ("12/2023",)], ["invoice_posting_period"]
     )
@@ -38,7 +40,9 @@ def test_normalize_posting_period(spark):
         df, "invoice_posting_period", "posting_date"
     )
 
-    formatted = result.select(date_format("posting_date", "yyyy-MM-dd").alias("formatted_date"))
+    formatted = result.select(
+        date_format("posting_date", "yyyy-MM-dd").alias("formatted_date")
+    )
     actual_dates = [row["formatted_date"] for row in formatted.collect()]
 
     assert actual_dates == ["2022-05-01", "2023-12-01"]
