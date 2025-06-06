@@ -14,10 +14,10 @@ def standardize_column_names(df: DataFrame) -> DataFrame:
 
 
 def clean_text_column(df: DataFrame, column_name: str) -> DataFrame:
-    """Strip leading/trailing spaces and convert to lowercase."""
+    """Trim whitespace, collapse spaces, and lowercase."""
     return df.withColumn(
         column_name,
-        lower(trim(col(column_name)))
+        lower(regexp_replace(col(column_name), r"\s+", " ").strip())
     )
 
 
