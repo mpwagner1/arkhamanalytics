@@ -21,6 +21,7 @@ AUDIT_SCHEMA = StructType([
     StructField("triggered_by", StringType(), True),
 ])
 
+
 def _get_current_user(spark: SparkSession) -> str:
     try:
         return spark.sql("SELECT current_user()").collect()[0][0]
