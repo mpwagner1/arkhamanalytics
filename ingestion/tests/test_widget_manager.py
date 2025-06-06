@@ -5,7 +5,7 @@ from ingestion.modules.widget_manager import WidgetManager
 @pytest.fixture
 def mock_dbutils():
     """Fixture to patch dbutils.widgets for all tests in this file."""
-    with patch("modules.widget_manager.dbutils") as mock:
+    with patch("ingestion.modules.widget_manager.dbutils") as mock:
         mock.widgets.text = MagicMock()
         mock.widgets.dropdown = MagicMock()
         mock.widgets.combobox = MagicMock()
