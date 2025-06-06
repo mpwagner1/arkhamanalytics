@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Optional
 from pyspark.sql import SparkSession, DataFrame
 
+
 # Configure logger
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
