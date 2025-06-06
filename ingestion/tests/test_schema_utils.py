@@ -7,26 +7,22 @@ def get_schema_dict(df: DataFrame) -> Dict[str, str]:
     """Returns a dictionary of column names and their Spark data types (as strings)."""
     return {field.name: field.dataType.simpleString() for field in df.schema}
 
+
 def infer_schema(df: DataFrame) -> StructType:
     """Return the inferred schema of a DataFrame."""
     return df.schema
+
 
 def get_column_names(df: DataFrame) -> List[str]:
     """Return the list of column names in a DataFrame."""
     return df.columns
 
+
 def validate_column_names(
-    df: DataFrame,
-    expected_columns: List[str],
-    case_sensitive: bool = False
+    df: DataFrame, expected_columns: List[str], case_sensitive: bool = False
 ) -> Tuple[bool, List[str], List[str]]:
     """
     Validates if DataFrame contains exactly the expected column names.
-
-    Args:
-        df: The input Spark DataFrame.
-        expected_columns: List of expected column names.
-        case_sensitive: If False, performs case-insensitive match.
 
     Returns:
         Tuple (is_valid, missing_columns, unexpected_columns)
@@ -44,18 +40,12 @@ def validate_column_names(
     is_valid = len(missing) == 0 and len(unexpected) == 0
     return is_valid, missing, unexpected
 
+
 def validate_column_types(
-    df: DataFrame,
-    expected_schema: Dict[str, str],
-    case_sensitive: bool = False
+    df: DataFrame, expected_schema: Dict[str, str], case_sensitive: bool = False
 ) -> Tuple[bool, Dict[str, str], Dict[str, str]]:
     """
     Validates if each column in the DataFrame matches the expected type.
-
-    Args:
-        df: The input Spark DataFrame.
-        expected_schema: Dict of column name to expected type string.
-        case_sensitive: If False, uses case-insensitive column match.
 
     Returns:
         Tuple (is_valid, mismatched_columns, missing_columns)
@@ -73,23 +63,19 @@ def validate_column_types(
         if actual_type is None:
             missing[col] = expected_type
         elif actual_type != expected_type:
-            mismatched[col] = f"expected: {expected_type}, found: {actual_type}"
+            mismatched[col] = (
+                f"expected: {expected_type}, found: {actual_type}"
+            )
 
     is_valid = len(mismatched) == 0 and len(missing) == 0
     return is_valid, mismatched, missing
 
+
 def compare_schemas(
-    df1: DataFrame,
-    df2: DataFrame,
-    ignore_case: bool = False
+    df1: DataFrame, df2: DataFrame, ignore_case: bool = False
 ) -> Dict[str, List[str]]:
     """
     Compares schema of two DataFrames.
-
-    Args:
-        df1: First DataFrame.
-        df2: Second DataFrame.
-        ignore_case: If True, compares column names case-insensitively.
 
     Returns:
         Dict containing differences: keys = only_in_df1, only_in_df2, mismatched_types
@@ -112,5 +98,5 @@ def compare_schemas(
     return {
         "only_in_df1": sorted(only_in_df1),
         "only_in_df2": sorted(only_in_df2),
-        "mismatched_types": sorted(mismatched_types)
+        "mismatched_types": sorted(mismatched_types),
     }
