@@ -1,0 +1,36 @@
+name: Run Pytest and Linting
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install test dependencies
+        run: |
+          pip install -r ingestion/requirements-dev.txt
+
+      - name: Run tests with Pytest
+        run: |
+          pytest ingestion/tests/ --maxfail=3 --disable-warnings -v
+
+      - name: Check formatting with Black
+        run: |
+          black --check ingestion/modules ingestion/tests
+
+      - name: Lint with Flake8
+        run: |
+          flake8 ingestion/modules ingestion/tests
