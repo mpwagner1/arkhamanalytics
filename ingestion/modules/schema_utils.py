@@ -4,7 +4,10 @@ from typing import List, Dict, Tuple
 
 
 def get_schema_dict(df: DataFrame) -> Dict[str, str]:
-    """Returns a dictionary of column names and their Spark data types (as strings)."""
+    """
+    Returns a dictionary of column names and their Spark data types
+    (as strings).
+    """
     return {field.name: field.dataType.simpleString() for field in df.schema}
 
 
