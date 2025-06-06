@@ -120,3 +120,4 @@ def get_config_from_widgets() -> ProcessingConfig:
         excel_starting_cell=start_cell,
     )
 
+
