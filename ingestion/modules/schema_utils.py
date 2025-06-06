@@ -2,6 +2,7 @@ from pyspark.sql import DataFrame
 from pyspark.sql.types import StructType
 from typing import List, Dict, Tuple, Literal, TypedDict
 
+
 # TypedDict for more readable schema definitions
 class SchemaDefinition(TypedDict):
     column: str
