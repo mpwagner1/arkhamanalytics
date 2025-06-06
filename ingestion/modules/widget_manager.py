@@ -3,10 +3,14 @@ from datetime import datetime
 import logging
 
 try:
-    dbutils  # type: ignore
+    from pyspark.dbutils import DBUtils  # optional fallback
+except ImportError:
+    DBUtils = None
+
+try:
+    dbutils  # Databricks global
 except NameError:
-    from pyspark.dbutils import DBUtils
-    dbutils = DBUtils(spark)  # fallback for local dev/testing
+    dbutils = None  # allow mock injection
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
