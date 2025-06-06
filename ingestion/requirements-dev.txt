@@ -7,6 +7,7 @@ delta-spark==3.1.0
 # Testing frameworks
 pytest>=7.0
 pytest-cov>=4.0
+chardet>=5.0
 
 # Type checking (optional but recommended)
 mypy>=1.0
