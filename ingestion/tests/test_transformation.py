@@ -1,7 +1,7 @@
 import pytest
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
 from pyspark.sql.functions import date_format
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
 import ingestion.modules.transformations as transformations
 
@@ -30,7 +30,11 @@ def test_remove_currency_symbols_parses_float(spark):
 
 
 def test_fill_nulls_applies_correctly(spark):
-    df = spark.createDataFrame([(None, 2)], ["col1", "col2"])
+    schema = StructType([
+        StructField("col1", StringType(), True),
+        StructField("col2", IntegerType(), True),
+    ])
+    df = spark.createDataFrame([(None, 2)], schema)
     result = transformations.fill_nulls(df, {"col1": "default"})
     assert result.first()["col1"] == "default"
 
