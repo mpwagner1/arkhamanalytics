@@ -2,6 +2,7 @@ import pytest
 from pyspark.sql import SparkSession
 from pyspark.sql import Row
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType
+from pyspark.sql.functions import date_format
 from modules import transformations
 
 @pytest.fixture(scope="module")
@@ -29,10 +30,17 @@ def test_fill_nulls_applies_correctly(spark):
     assert result.filter("desc = 'Unknown'").count() == 1
 
 def test_normalize_posting_period(spark):
-    df = spark.createDataFrame([("05/2022",), ("12/2023",)], ["invoice_posting_period"])
-    result = transformations.normalize_posting_period(df, "invoice_posting_period", "posting_date")
+    df = spark.createDataFrame(
+        [("05/2022",), ("12/2023",)], ["invoice_posting_period"]
+    )
 
-    actual_dates = [row["posting_date"].strftime("%Y-%m-%d") for row in result.collect()]
+    result = transformations.normalize_posting_period(
+        df, "invoice_posting_period", "posting_date"
+    )
+
+    formatted = result.select(date_format("posting_date", "yyyy-MM-dd").alias("formatted_date"))
+    actual_dates = [row["formatted_date"] for row in formatted.collect()]
+
     assert actual_dates == ["2022-05-01", "2023-12-01"]
 
 def test_replace_values_replaces_multiple_values(spark):
