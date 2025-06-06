@@ -2,7 +2,7 @@ from pyspark.sql import DataFrame, Column
 from pyspark.sql.functions import (
     col, trim, lower, regexp_replace, when, to_date, lit
 )
-from typing import List
+from typing import List, Any
 
 
 def standardize_column_names(df: DataFrame) -> DataFrame:
