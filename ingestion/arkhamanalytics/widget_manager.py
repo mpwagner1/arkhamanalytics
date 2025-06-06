@@ -1,15 +1,16 @@
-from typing import Any, Dict, Optional
 import logging
+from typing import Any, Dict, Optional
+from dataclasses import dataclass
 
 try:
-    from pyspark.dbutils import DBUtils  # optional fallback
+    from pyspark.dbutils import DBUtils  # for type hints in IDEs
 except ImportError:
     DBUtils = None
 
 try:
-    dbutils  # Databricks global
+    dbutils  # Databricks runtime global
 except NameError:
-    dbutils = None  # allow mock injection
+    dbutils = None  # allow mocking or unit testing
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -81,3 +82,38 @@ class WidgetManager:
         for name in dbutils.widgets.getArgumentNames():
             dbutils.widgets.remove(name)
         logger.info("All widgets removed.")
+
+
+@dataclass
+class ProcessingConfig:
+    container_name: str
+    file_pattern: str
+    encoding: str
+    delimiter: str
+    quotechar: str
+    escapechar: str
+    skip_lines: int
+    audit_table: str
+    sheet_name: str
+    excel_starting_cell: str
+
+
+def get_config_from_widgets() -> ProcessingConfig:
+    """Fetch widget values and return them as a typed ProcessingConfig object."""
+    try:
+        skip_lines = int(dbutils.widgets.get("skip_lines"))
+    except Exception:
+        skip_lines = 0
+
+    return ProcessingConfig(
+        container_name=dbutils.widgets.get("container_name"),
+        file_pattern=dbutils.widgets.get("file_pattern"),
+        encoding=dbutils.widgets.get("file_encoding"),
+        delimiter=dbutils.widgets.get("file_delimiter"),
+        quotechar=dbutils.widgets.get("file_quotechar"),
+        escapechar=dbutils.widgets.get("file_escapechar"),
+        skip_lines=skip_lines,
+        audit_table=dbutils.widgets.get("audit_table"),
+        sheet_name=dbutils.widgets.get("sheet_name"),
+        excel_starting_cell=dbutils.widgets.get("start_cell"),
+    )
