@@ -45,7 +45,7 @@ def normalize_posting_period(df: DataFrame, column_name: str, new_column_name: s
     return df.withColumn(
         new_column_name,
         to_date(
-            regexp_replace(col(column_name), r"(\d{2})/(\d{4})", r"\2-\1-01"),
+            regexp_replace(col(column_name), r"^(\d{2})/(\d{4})$", r"\2-\1-01"),
             "yyyy-MM-dd"
         )
     )
