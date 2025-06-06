@@ -1,8 +1,12 @@
 from datetime import datetime
-from typing import Optional, Dict
+from typing import Optional
 from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql.functions import lit
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+from pyspark.sql.types import (
+    StructType,
+    StructField,
+    StringType,
+    IntegerType,
+)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -25,8 +29,9 @@ AUDIT_SCHEMA = StructType([
 def _get_current_user(spark: SparkSession) -> str:
     try:
         return spark.sql("SELECT current_user()").collect()[0][0]
-    except:
+    except Exception:
         return "unknown_user"
+
 
 def log_ingestion_audit(
     spark: SparkSession,
@@ -40,28 +45,12 @@ def log_ingestion_audit(
     source_system: Optional[str] = None,
     triggered_by: Optional[str] = None,
     write_mode: str = "append",
-    target_type: str = "path"  # can be "path" or "table"
+    target_type: str = "path",  # can be "path" or "table"
 ) -> None:
     """
     Logs ingestion metadata to a Delta table or path.
-    
-    Args:
-        spark: Active SparkSession
-        audit_target: Path or table name for audit logs
-        source_file_path: Ingested file path
-        file_format: csv, xlsx, txt, etc.
-        row_count: Number of records ingested
-        source_schema: Stringified schema
-        status: SUCCESS or FAILED
-        error_message: Optional error message
-        source_system: Optional data source name
-        triggered_by: Optional user/job, auto-filled if None
-        write_mode: append, overwrite, etc.
-        target_type: 'path' or 'table'
     """
-
     try:
-        # Check target_type before anything else
         if target_type not in {"path", "table"}:
             raise ValueError("target_type must be 'path' or 'table'")
 
@@ -69,15 +58,26 @@ def log_ingestion_audit(
         if triggered_by is None:
             triggered_by = _get_current_user(spark)
 
-        data = [(now, source_file_path, file_format, row_count, source_schema,
-                 status, error_message, source_system, triggered_by)]
+        data = [
+            (
+                now,
+                source_file_path,
+                file_format,
+                row_count,
+                source_schema,
+                status,
+                error_message,
+                source_system,
+                triggered_by,
+            )
+        ]
 
         df: DataFrame = spark.createDataFrame(data, schema=AUDIT_SCHEMA)
 
         writer = df.write.format("delta").mode(write_mode)
         if target_type == "path":
             writer.save(audit_target)
-        else:  
+        else:
             writer.saveAsTable(audit_target)
 
         logger.info(f"Audit log written to {audit_target} ({target_type})")
