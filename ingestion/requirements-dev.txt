@@ -1,0 +1,16 @@
+# requirements-dev.txt
+
+# PySpark & Delta Lake (for local testing)
+pyspark==3.5.1
+delta-spark==3.1.0
+
+# Testing frameworks
+pytest>=7.0
+pytest-cov>=4.0
+
+# Type checking (optional but recommended)
+mypy>=1.0
+
+# Linting & style checks
+flake8>=6.0
+black>=24.0
