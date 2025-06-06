@@ -1,8 +1,8 @@
-from pyspark.sql import DataFrame, Column
+from pyspark.sql import DataFrame
 from pyspark.sql.functions import (
     col, trim, lower, regexp_replace, when, to_date, lit
 )
-from typing import List, Any
+from typing import Any
 
 def standardize_column_names(df: DataFrame) -> DataFrame:
     """Lowercase and strip whitespace from all column names."""
