@@ -21,16 +21,9 @@ def clean_text_column(df: DataFrame, column_name: str) -> DataFrame:
     )
 
 
-def remove_currency_symbols(df: DataFrame, column_name: str) -> DataFrame:
-    """
-    Convert currency-formatted strings to float:
-    "$1,234.56" → 1234.56
-    """
-    return df.withColumn(
-        column_name,
-        regexp_replace(col(column_name), "[$,]", "").cast("double")
-    )
-
+def remove_currency_symbols(df: DataFrame, column_name: str, output_col: str) -> DataFrame:
+    """Remove currency symbols and cast to float."""
+    return df.withColumn(output_col, regexp_replace(col(column_name), r"[^0-9.]", "").cast("float"))
 
 def fill_nulls(df: DataFrame, columns: List[str], fill_value) -> DataFrame:
     """Replace nulls in given columns with a default value."""
