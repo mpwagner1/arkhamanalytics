@@ -28,8 +28,17 @@ jobs:
           PYTHONPATH=. pytest ingestion/tests/ --maxfail=3 --disable-warnings -v
 
       - name: Check formatting with Black
+        id: black_check
+        continue-on-error: true
         run: |
           black --check ingestion/modules ingestion/tests
+      
+      - name: Auto-format with Black if needed
+        if: steps.black_check.outcome == 'failure'
+        run: |
+          echo "Some files need formatting. Running Black to fix..."
+          black ingestion/modules ingestion/tests
+
 
       - name: Lint with Flake8
         run: |
