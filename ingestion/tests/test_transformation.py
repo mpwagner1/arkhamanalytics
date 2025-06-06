@@ -5,7 +5,6 @@ from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
 import ingestion.modules.transformations as transformations
 
-
 @pytest.fixture(scope="module")
 def spark():
     return SparkSession.builder.master("local[*]").appName("TestSession").getOrCreate()
