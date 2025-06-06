@@ -1,6 +1,6 @@
 from pyspark.sql import DataFrame
 from pyspark.sql.types import StructType
-from typing import List, Dict, Tuple, Literal
+from typing import List, Dict, Tuple
 
 
 def get_schema_dict(df: DataFrame) -> Dict[str, str]:
