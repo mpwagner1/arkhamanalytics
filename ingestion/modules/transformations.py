@@ -29,19 +29,8 @@ def fill_nulls(df: DataFrame, fill_map: dict[str, Any]) -> DataFrame:
     """Replace nulls in given columns with a default value."""
     return df.fillna(fill_map)
 
-def normalize_posting_period(df: DataFrame, column_name: str, new_column_name: str = "posting_date") -> DataFrame:
-    """
-    Transform 'MM/YYYY' string column into a first-of-month date column.
-    Example: '05/2022' → '2022-05-01'
-    """
-    return df.withColumn(
-        new_column_name,
-        to_date(
-            regexp_replace(col(column_name), r"^(\d{2})/(\d{4})$", r"\2-\1-01"),
-            "yyyy-MM-dd"
-        )
-    )
-
+def normalize_posting_period(df: DataFrame, input_col: str, output_col: str) -> DataFrame:
+    return df.withColumn(output_col, to_date(col(input_col), "MM/yyyy"))
 
 def replace_values(df: DataFrame, column: str, replacements: dict) -> DataFrame:
     """
