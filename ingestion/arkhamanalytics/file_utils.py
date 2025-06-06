@@ -79,9 +79,9 @@ def detect_and_read_file(
     encoding: Optional[str] = None
 ) -> DataFrame:
     """Convenience wrapper that detects file format and reads file"""
-    file_format = get_file_extension(file_path)
-    return read_file_as_df(spark, file_path, file_format, encoding)
-
+    try:
+        file_format = get_file_extension(file_path)
+        return read_file_as_df(spark, file_path, file_format, encoding)
     except Exception as e:
-        logger.error(f"Error reading file {file_path}: {str(e)}")
-        raise RuntimeError(f"Failed to read file {file_path}: {str(e)}")
+        logger.error(f"Failed to read file {file_path}: {str(e)}")
+        raise
