@@ -31,16 +31,14 @@ jobs:
         id: black_check
         continue-on-error: true
         run: |
-          black --check ingestion/modules ingestion/tests
+          black --check ingestion/arkhamanalytics ingestion/tests
       
       - name: Auto-format with Black if needed
         if: steps.black_check.outcome == 'failure'
         run: |
           echo "Some files need formatting. Running Black to fix..."
-          black ingestion/modules ingestion/tests
-
+          black ingestion/arkhamanalytics ingestion/tests
 
       - name: Lint with Flake8
         run: |
-          flake8 ingestion/modules ingestion/tests
-
+          flake8 ingestion/arkhamanalytics ingestion/tests
