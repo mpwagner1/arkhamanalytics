@@ -25,7 +25,7 @@ jobs:
 
       - name: Run tests with Pytest
         run: |
-          pytest ingestion/tests/ --maxfail=3 --disable-warnings -v
+          PYTHONPATH=. pytest ingestion/tests/ --maxfail=3 --disable-warnings -v
 
       - name: Check formatting with Black
         run: |
@@ -34,3 +34,4 @@ jobs:
       - name: Lint with Flake8
         run: |
           flake8 ingestion/modules ingestion/tests
+
