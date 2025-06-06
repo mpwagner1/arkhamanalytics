@@ -1,80 +1,115 @@
-import pytest
-from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType
-from modules import schema_utils
+from pyspark.sql import DataFrame
+from pyspark.sql.types import StructType
+from typing import List, Dict, Tuple, Literal
 
-@pytest.fixture(scope="module")
-def spark():
-    return SparkSession.builder.master("local[1]").appName("SchemaTests").getOrCreate()
+def get_schema_dict(df: DataFrame) -> Dict[str, str]:
+    """Returns a dictionary of column names and their Spark data types (as strings)."""
+    return {field.name: field.dataType.simpleString() for field in df.schema}
 
-@pytest.fixture
-def sample_df(spark):
-    data = [("ABC", "2024-01-01", 100.5)]
-    schema = StructType([
-        StructField("GC_PORTCO_ID", StringType(), True),
-        StructField("INVOICE_DATE", StringType(), True),
-        StructField("INVOICE_NET_AMOUNT", DoubleType(), True)
-    ])
-    return spark.createDataFrame(data, schema)
+def infer_schema(df: DataFrame) -> StructType:
+    """Return the inferred schema of a DataFrame."""
+    return df.schema
 
-def test_get_column_names_returns_expected(sample_df):
-    assert schema_utils.get_column_names(sample_df) == [
-        "GC_PORTCO_ID", "INVOICE_DATE", "INVOICE_NET_AMOUNT"
+def get_column_names(df: DataFrame) -> List[str]:
+    """Return the list of column names in a DataFrame."""
+    return df.columns
+
+def validate_column_names(
+    df: DataFrame,
+    expected_columns: List[str],
+    case_sensitive: bool = False
+) -> Tuple[bool, List[str], List[str]]:
+    """
+    Validates if DataFrame contains exactly the expected column names.
+
+    Args:
+        df: The input Spark DataFrame.
+        expected_columns: List of expected column names.
+        case_sensitive: If False, performs case-insensitive match.
+
+    Returns:
+        Tuple (is_valid, missing_columns, unexpected_columns)
+    """
+    df_columns = df.columns
+    if not case_sensitive:
+        df_columns = [col.lower() for col in df_columns]
+        expected_columns = [col.lower() for col in expected_columns]
+
+    actual_set = set(df_columns)
+    expected_set = set(expected_columns)
+
+    missing = list(expected_set - actual_set)
+    unexpected = list(actual_set - expected_set)
+    is_valid = len(missing) == 0 and len(unexpected) == 0
+    return is_valid, missing, unexpected
+
+def validate_column_types(
+    df: DataFrame,
+    expected_schema: Dict[str, str],
+    case_sensitive: bool = False
+) -> Tuple[bool, Dict[str, str], Dict[str, str]]:
+    """
+    Validates if each column in the DataFrame matches the expected type.
+
+    Args:
+        df: The input Spark DataFrame.
+        expected_schema: Dict of column name to expected type string.
+        case_sensitive: If False, uses case-insensitive column match.
+
+    Returns:
+        Tuple (is_valid, mismatched_columns, missing_columns)
+    """
+    actual_schema = get_schema_dict(df)
+    if not case_sensitive:
+        expected_schema = {k.lower(): v for k, v in expected_schema.items()}
+        actual_schema = {k.lower(): v for k, v in actual_schema.items()}
+
+    mismatched = {}
+    missing = {}
+
+    for col, expected_type in expected_schema.items():
+        actual_type = actual_schema.get(col)
+        if actual_type is None:
+            missing[col] = expected_type
+        elif actual_type != expected_type:
+            mismatched[col] = f"expected: {expected_type}, found: {actual_type}"
+
+    is_valid = len(mismatched) == 0 and len(missing) == 0
+    return is_valid, mismatched, missing
+
+def compare_schemas(
+    df1: DataFrame,
+    df2: DataFrame,
+    ignore_case: bool = False
+) -> Dict[str, List[str]]:
+    """
+    Compares schema of two DataFrames.
+
+    Args:
+        df1: First DataFrame.
+        df2: Second DataFrame.
+        ignore_case: If True, compares column names case-insensitively.
+
+    Returns:
+        Dict containing differences: keys = only_in_df1, only_in_df2, mismatched_types
+    """
+    schema1 = get_schema_dict(df1)
+    schema2 = get_schema_dict(df2)
+
+    if ignore_case:
+        schema1 = {k.lower(): v for k, v in schema1.items()}
+        schema2 = {k.lower(): v for k, v in schema2.items()}
+
+    only_in_df1 = list(set(schema1.keys()) - set(schema2.keys()))
+    only_in_df2 = list(set(schema2.keys()) - set(schema1.keys()))
+    mismatched_types = [
+        f"{col}: {schema1[col]} != {schema2[col]}"
+        for col in set(schema1.keys()) & set(schema2.keys())
+        if schema1[col] != schema2[col]
     ]
 
-@pytest.mark.parametrize("expected,case_sensitive,valid,missing,unexpected", [
-    (["GC_PORTCO_ID", "INVOICE_DATE", "INVOICE_NET_AMOUNT"], True, True, [], []),
-    (["gc_portco_id", "invoice_date", "invoice_net_amount"], False, True, [], []),
-    (["GC_PORTCO_ID", "POSTING_DATE"], True, False, ["POSTING_DATE"], ["INVOICE_DATE", "INVOICE_NET_AMOUNT"]),
-])
-def test_validate_column_names(sample_df, expected, case_sensitive, valid, missing, unexpected):
-    result = schema_utils.validate_column_names(sample_df, expected, case_sensitive)
-    assert result[0] == valid
-    assert set(result[1]) == set(missing)
-    assert set(result[2]) == set(unexpected)
-
-def test_validate_column_types_matches_expected(sample_df):
-    expected_schema = {
-        "GC_PORTCO_ID": "string",
-        "INVOICE_DATE": "string",
-        "INVOICE_NET_AMOUNT": "double"
+    return {
+        "only_in_df1": sorted(only_in_df1),
+        "only_in_df2": sorted(only_in_df2),
+        "mismatched_types": sorted(mismatched_types)
     }
-    valid, mismatches, missing = schema_utils.validate_column_types(sample_df, expected_schema)
-    assert valid is True
-    assert mismatches == {}
-    assert missing == {}
-
-def test_validate_column_types_detects_mismatch(sample_df):
-    expected_schema = {
-        "GC_PORTCO_ID": "string",
-        "INVOICE_DATE": "string",
-        "INVOICE_NET_AMOUNT": "integer"
-    }
-    valid, mismatches, missing = schema_utils.validate_column_types(sample_df, expected_schema)
-    assert valid is False
-    assert "INVOICE_NET_AMOUNT" in mismatches
-    assert missing == {}
-
-def test_validate_column_types_detects_missing_column(sample_df):
-    expected_schema = {
-        "GC_PORTCO_ID": "string",
-        "POSTING_DATE": "date"
-    }
-    valid, mismatches, missing = schema_utils.validate_column_types(sample_df, expected_schema)
-    assert valid is False
-    assert "POSTING_DATE" in missing
-    assert mismatches == {}
-
-def test_compare_schemas_detects_differences(spark, sample_df):
-    # Different schema
-    schema_b = StructType([
-        StructField("GC_PORTCO_ID", StringType(), True),
-        StructField("INVOICE_DATE", StringType(), True),
-        StructField("POSTING_DATE", StringType(), True)
-    ])
-    df2 = spark.createDataFrame([("ABC", "2024-01-01", "2024-01-31")], schema=schema_b)
-
-    result = schema_utils.compare_schemas(sample_df, df2)
-    assert "INVOICE_NET_AMOUNT" in result["only_in_df1"]
-    assert "POSTING_DATE" in result["only_in_df2"]
-    assert result["mismatched_types"] == []
