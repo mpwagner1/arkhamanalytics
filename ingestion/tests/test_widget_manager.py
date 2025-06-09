@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from arkhamanalytics.widget_manager import WidgetManager, get_config_from_widgets, ProcessingConfig
-from arkhamanalytics.widget_presets import create_base_widgets
+from arkhamanalytics.widget_manager import get_config_from_widgets, ProcessingConfig
 
 @pytest.fixture
 def mock_dbutils():
