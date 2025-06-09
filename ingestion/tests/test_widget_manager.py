@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from arkhamanalytics.widget_manager import WidgetManager
-from arkhamanalytics.widget_manager import get_config_from_widgets, ProcessingConfig
+from arkhamanalytics.widget_manager import WidgetManager, get_config_from_widgets, ProcessingConfig
+from arkhamanalytics.widget_presets import create_base_widgets
 
 @pytest.fixture
 def mock_dbutils():
@@ -11,13 +11,26 @@ def mock_dbutils():
         mock.widgets.dropdown = MagicMock()
         mock.widgets.combobox = MagicMock()
         mock.widgets.multiselect = MagicMock()
-        mock.widgets.get = MagicMock(side_effect=lambda name: {
+        mock.widgets.remove = MagicMock()
+
+        widget_values = {
             "batch_size": "1000",
             "debug": "true",
-            "env": "prod"
-        }[name])
-        mock.widgets.getArgumentNames.return_value = ["batch_size", "debug", "env"]
-        mock.widgets.remove = MagicMock()
+            "env": "prod",
+            "container_name": "raw",
+            "file_pattern": "*.csv",
+            "file_encoding": "utf-8",
+            "file_delimiter": ",",
+            "file_quotechar": '"',
+            "file_escapechar": "\\",
+            "skip_lines": "0",
+            "audit_table": "default.audit_log",
+            "sheet_name": "Sheet1",
+            "start_cell": "A1"
+        }
+
+        mock.widgets.get = MagicMock(side_effect=lambda name: widget_values[name])
+        mock.widgets.getArgumentNames.return_value = list(widget_values.keys())
         yield mock
 
 def test_create_text_widget(mock_dbutils):
