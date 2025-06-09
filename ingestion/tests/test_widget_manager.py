@@ -52,26 +52,40 @@ def test_get_casts_value_correctly(mock_dbutils):
 def test_get_all_returns_all_widget_values(mock_dbutils):
     wm = WidgetManager()
     result = wm.get_all()
-    assert result == {
+
+    expected = {
         "batch_size": "1000",
         "debug": "true",
-        "env": "prod"
+        "env": "prod",
+        "container_name": "raw",
+        "file_pattern": "*.csv",
+        "file_encoding": "utf-8",
+        "file_delimiter": ",",
+        "file_quotechar": '"',
+        "file_escapechar": "\\",
+        "skip_lines": "0",
+        "audit_table": "default.audit_log",
+        "sheet_name": "Sheet1",
+        "start_cell": "A1",
     }
+
+    assert result == expected
 
 def test_as_config_dict_casts_properly(mock_dbutils):
     wm = WidgetManager()
     cast_map = {"batch_size": "int", "debug": "bool", "env": "str"}
     config = wm.as_config_dict(cast_map)
-    assert config == {
-        "batch_size": 1000,
-        "debug": True,
-        "env": "prod"
-    }
+
+    assert config["batch_size"] == 1000
+    assert config["debug"] is True
+    assert config["env"] == "prod"
+
 
 def test_remove_all_calls_remove(mock_dbutils):
     wm = WidgetManager()
     wm.remove_all()
-    assert mock_dbutils.widgets.remove.call_count == 3
+    expected_count = len(mock_dbutils.widgets.getArgumentNames.return_value)
+    assert mock_dbutils.widgets.remove.call_count == expected_count
 
 def test_create_base_widgets_sets_expected(mock_dbutils):
     wm = WidgetManager()
