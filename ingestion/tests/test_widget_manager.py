@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from arkhamanalytics.widget_manager import WidgetManager
-
+from arkhamanalytics.widget_manager import get_config_from_widgets, ProcessingConfig
 
 @pytest.fixture
 def mock_dbutils():
@@ -59,3 +59,18 @@ def test_remove_all_calls_remove(mock_dbutils):
     wm = WidgetManager()
     wm.remove_all()
     assert mock_dbutils.widgets.remove.call_count == 3
+
+def test_create_base_widgets_sets_expected(mock_dbutils):
+    wm = WidgetManager()
+    create_base_widgets(wm)
+
+    call_args = [call[0][0] for call in mock_dbutils.widgets.get.call_args_list]
+    actual_keys = set(call_args)
+
+    expected_keys = {
+        "container_name", "file_pattern", "file_encoding", "file_delimiter",
+        "file_quotechar", "file_escapechar", "skip_lines", "audit_table",
+        "sheet_name", "start_cell"
+    }
+
+    assert expected_keys.issubset(actual_keys)
