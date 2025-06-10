@@ -44,17 +44,15 @@ def test_read_excel_constructs_data_address_correctly(spark, tmp_path):
     with (
         patch("arkhamanalytics.file_utils.exists", return_value=True),
         patch("arkhamanalytics.file_utils.detect_file_encoding", return_value="utf-8"),
-        patch("pyspark.sql.readwriter.DataFrameReader.load", return_value=MagicMock()) as mock_load,
-        patch("pyspark.sql.SparkSession.read", new_callable=MagicMock) as mock_reader
     ):
-        mock_reader_instance = MagicMock()
-        mock_reader.return_value = mock_reader_instance
+        mock_reader = MagicMock()
+        mock_reader.format.return_value = mock_reader
+        mock_reader.option.return_value = mock_reader
+        mock_reader.load.return_value = "mock_df"
 
-        # Track .option calls
-        mock_reader_instance.format.return_value = mock_reader_instance
-        mock_reader_instance.option.return_value = mock_reader_instance
+        # Patch the .read property directly on this spark instance
+        spark.read = mock_reader
 
-        # Call the function
         result = read_file_as_df(
             spark=spark,
             file_path=str(test_file),
@@ -64,5 +62,5 @@ def test_read_excel_constructs_data_address_correctly(spark, tmp_path):
             start_cell="B5",
         )
 
-        # Assert the .option() method was called with expected dataAddress
-        mock_reader_instance.option.assert_any_call("dataAddress", "'MySheet'!B5")
+        mock_reader.option.assert_any_call("dataAddress", "'MySheet'!B5")
+        assert result == "mock_df
