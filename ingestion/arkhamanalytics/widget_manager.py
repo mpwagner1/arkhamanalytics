@@ -2,22 +2,25 @@ import logging
 from typing import Any, Dict, Optional
 from dataclasses import dataclass
 
-try:
-    from pyspark.dbutils import DBUtils  # for type hints in IDEs
-except ImportError:
-    DBUtils = None
-
-try:
-    dbutils  # Databricks runtime global
-except NameError:
-    dbutils = None  # allow mocking or unit testing
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
 class WidgetManager:
-    def __init__(self):
+    def __init__(self, dbutils_ref=None):
+        """Initialize with an optional dbutils reference (for testing or Databricks)."""
+        if dbutils_ref is None:
+            try:
+                import IPython
+
+                dbutils_ref = IPython.get_ipython().user_ns.get("dbutils", None)
+            except Exception:
+                dbutils_ref = None
+
+        if dbutils_ref is None:
+            raise EnvironmentError("dbutils is not available in this environment.")
+
+        self.dbutils = dbutils_ref
         self.widgets: Dict[str, str] = {}
 
     def create(
@@ -29,24 +32,24 @@ class WidgetManager:
     ):
         """Create a Databricks widget if it doesn't exist already."""
         if widget_type == "text":
-            dbutils.widgets.text(name, default_value)
+            self.dbutils.widgets.text(name, default_value)
         elif widget_type == "dropdown" and choices:
-            dbutils.widgets.dropdown(name, default_value, choices)
+            self.dbutils.widgets.dropdown(name, default_value, choices)
         elif widget_type == "combobox" and choices:
-            dbutils.widgets.combobox(name, default_value, choices)
+            self.dbutils.widgets.combobox(name, default_value, choices)
         elif widget_type == "multiselect" and choices:
-            dbutils.widgets.multiselect(name, default_value, choices)
+            self.dbutils.widgets.multiselect(name, default_value, choices)
         else:
             raise ValueError(
                 f"Unsupported widget type or missing choices for: {name}"
             )
 
-        self.widgets[name] = dbutils.widgets.get(name)
+        self.widgets[name] = self.dbutils.widgets.get(name)
         logger.info(f"Widget created: {name} = {self.widgets[name]}")
 
     def get(self, name: str, cast_type: Optional[str] = None) -> Any:
         """Retrieve widget value with optional casting."""
-        value = dbutils.widgets.get(name)
+        value = self.dbutils.widgets.get(name)
 
         if cast_type == "int":
             return int(value)
@@ -60,8 +63,8 @@ class WidgetManager:
     def get_all(self) -> Dict[str, str]:
         """Return all widgets as a dictionary of raw string values."""
         return {
-            item: dbutils.widgets.get(item)
-            for item in dbutils.widgets.getArgumentNames()
+            item: self.dbutils.widgets.get(item)
+            for item in self.dbutils.widgets.getArgumentNames()
         }
 
     def as_config_dict(
@@ -72,15 +75,15 @@ class WidgetManager:
         Example cast_map: {'batch_size': 'int', 'enabled': 'bool'}
         """
         result = {}
-        for name in dbutils.widgets.getArgumentNames():
+        for name in self.dbutils.widgets.getArgumentNames():
             cast_type = cast_map.get(name) if cast_map else None
             result[name] = self.get(name, cast_type)
         return result
 
     def remove_all(self):
         """Remove all widgets (useful for reruns)."""
-        for name in dbutils.widgets.getArgumentNames():
-            dbutils.widgets.remove(name)
+        for name in self.dbutils.widgets.getArgumentNames():
+            self.dbutils.widgets.remove(name)
         logger.info("All widgets removed.")
 
 
@@ -98,24 +101,22 @@ class ProcessingConfig:
     excel_starting_cell: str
 
 
-def get_config_from_widgets() -> ProcessingConfig:
+def get_config_from_widgets(dbutils_ref) -> ProcessingConfig:
     """Fetch widget values and return them as a typed ProcessingConfig object."""
     try:
-        skip_lines = int(dbutils.widgets.get("skip_lines"))
+        skip_lines = int(dbutils_ref.widgets.get("skip_lines"))
     except Exception:
         skip_lines = 0
 
     return ProcessingConfig(
-        container_name=dbutils.widgets.get("container_name"),
-        file_pattern=dbutils.widgets.get("file_pattern"),
-        encoding=dbutils.widgets.get("file_encoding"),
-        delimiter=dbutils.widgets.get("file_delimiter"),
-        quotechar=dbutils.widgets.get("file_quotechar"),
-        escapechar=dbutils.widgets.get("file_escapechar"),
+        container_name=dbutils_ref.widgets.get("container_name"),
+        file_pattern=dbutils_ref.widgets.get("file_pattern"),
+        encoding=dbutils_ref.widgets.get("file_encoding"),
+        delimiter=dbutils_ref.widgets.get("file_delimiter"),
+        quotechar=dbutils_ref.widgets.get("file_quotechar"),
+        escapechar=dbutils_ref.widgets.get("file_escapechar"),
         skip_lines=skip_lines,
-        audit_table=dbutils.widgets.get("audit_table"),
-        sheet_name=dbutils.widgets.get("sheet_name"),
-        excel_starting_cell=dbutils.widgets.get(
-            "start_cell"
-        ),
+        audit_table=dbutils_ref.widgets.get("audit_table"),
+        sheet_name=dbutils_ref.widgets.get("sheet_name"),
+        excel_starting_cell=dbutils_ref.widgets.get("start_cell"),
     )
