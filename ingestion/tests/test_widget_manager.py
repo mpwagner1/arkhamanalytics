@@ -88,8 +88,16 @@ def test_as_config_dict_casts_properly(mock_dbutils):
 def test_remove_all_calls_remove(mock_dbutils):
     wm = WidgetManager(dbutils_ref=mock_dbutils)
     wm.remove_all()
-    expected_count = len(mock_dbutils.widgets.getArgumentNames.return_value)
-    assert mock_dbutils.widgets.remove.call_count == expected_count
+
+    expected_widgets = {
+        "batch_size", "debug", "env",
+        "container_name", "file_pattern", "file_encoding", "file_delimiter",
+        "file_quotechar", "file_escapechar", "skip_lines", "audit_table",
+        "sheet_name", "start_cell"
+    }
+
+    removed_widgets = {call_args[0][0] for call_args in mock_dbutils.widgets.remove.call_args_list}
+    assert expected_widgets.issubset(removed_widgets)
 
 def test_create_base_widgets_sets_expected(mock_dbutils):
     wm = WidgetManager(dbutils_ref=mock_dbutils)
