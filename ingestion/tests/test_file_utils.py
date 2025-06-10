@@ -63,3 +63,31 @@ def test_read_excel_constructs_data_address_correctly(spark, tmp_path):
 
         mock_reader.option.assert_any_call("dataAddress", "'MySheet'!B5")
         assert result == "mock_df"
+        
+def test_detect_and_read_file_passes_excel_args(spark):
+    from arkhamanalytics import file_utils
+
+    with patch("arkhamanalytics.file_utils.get_file_extension", return_value="xlsx"), \
+         patch("arkhamanalytics.file_utils.read_file_as_df") as mock_read:
+
+        mock_read.return_value = "mock_df"
+
+        result = file_utils.detect_and_read_file(
+            spark=spark,
+            file_path="/mnt/fake.xlsx",
+            encoding="utf-8",
+            sheet_name="DataSheet",
+            start_cell="C10"
+        )
+
+        mock_read.assert_called_once_with(
+            spark,
+            "/mnt/fake.xlsx",
+            "xlsx",
+            "utf-8",
+            "DataSheet",
+            "C10"
+        )
+
+        assert result == "mock_df"
+
