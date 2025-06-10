@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from arkhamanalytics.widget_manager import WidgetManager
+from arkhamanalytics.widget_manager import WidgetManager, get_config_from_widgets
 from arkhamanalytics.widget_presets import create_base_widgets
 
 
@@ -105,3 +105,10 @@ def test_create_base_widgets_sets_expected(mock_dbutils):
     }
 
     assert expected_keys.issubset(actual_keys)
+
+def test_get_config_from_widgets_builds_expected_config(mock_dbutils):
+    config = get_config_from_widgets(mock_dbutils)
+    assert config.container_name == "raw"
+    assert config.sheet_name == "Sheet1"
+    assert config.excel_starting_cell == "A1"
+    assert config.skip_lines == 0
