@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from arkhamanalytics.widget_manager import WidgetManager, get_config_from_widgets
 from arkhamanalytics.widget_presets import create_base_widgets
 
