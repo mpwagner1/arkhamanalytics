@@ -1,56 +1,60 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from arkhamanalytics.widget_manager import WidgetManager
-from arkhamanalytics.widget_presets import create_base_widgets 
+from arkhamanalytics.widget_presets import create_base_widgets
+
 
 @pytest.fixture
 def mock_dbutils():
-    """Fixture to patch dbutils.widgets for all tests in this file."""
-    with patch("arkhamanalytics.widget_manager.dbutils") as mock:
-        mock.widgets.text = MagicMock()
-        mock.widgets.dropdown = MagicMock()
-        mock.widgets.combobox = MagicMock()
-        mock.widgets.multiselect = MagicMock()
-        mock.widgets.remove = MagicMock()
+    """Fixture to mock dbutils.widgets for all tests in this file."""
+    mock_widgets = MagicMock()
+    widget_values = {
+        "batch_size": "1000",
+        "debug": "true",
+        "env": "prod",
+        "container_name": "raw",
+        "file_pattern": "*.csv",
+        "file_encoding": "utf-8",
+        "file_delimiter": ",",
+        "file_quotechar": '"',
+        "file_escapechar": "\\",
+        "skip_lines": "0",
+        "audit_table": "default.audit_log",
+        "sheet_name": "Sheet1",
+        "start_cell": "A1"
+    }
 
-        widget_values = {
-            "batch_size": "1000",
-            "debug": "true",
-            "env": "prod",
-            "container_name": "raw",
-            "file_pattern": "*.csv",
-            "file_encoding": "utf-8",
-            "file_delimiter": ",",
-            "file_quotechar": '"',
-            "file_escapechar": "\\",
-            "skip_lines": "0",
-            "audit_table": "default.audit_log",
-            "sheet_name": "Sheet1",
-            "start_cell": "A1"
-        }
+    mock_widgets.get.side_effect = lambda name: widget_values[name]
+    mock_widgets.getArgumentNames.return_value = list(widget_values.keys())
+    mock_widgets.remove = MagicMock()
+    mock_widgets.text = MagicMock()
+    mock_widgets.dropdown = MagicMock()
+    mock_widgets.combobox = MagicMock()
+    mock_widgets.multiselect = MagicMock()
 
-        mock.widgets.get = MagicMock(side_effect=lambda name: widget_values[name])
-        mock.widgets.getArgumentNames.return_value = list(widget_values.keys())
-        yield mock
+    mock_dbutils = MagicMock()
+    mock_dbutils.widgets = mock_widgets
+
+    return mock_dbutils
 
 def test_create_text_widget(mock_dbutils):
-    wm = WidgetManager()
+    wm = WidgetManager(dbutils_ref=mock_dbutils)
     wm.create("batch_size", "1000")
     mock_dbutils.widgets.text.assert_called_once_with("batch_size", "1000")
 
 def test_create_dropdown_widget(mock_dbutils):
-    wm = WidgetManager()
+    wm = WidgetManager(dbutils_ref=mock_dbutils)
     wm.create("env", "prod", widget_type="dropdown", choices=["dev", "qa", "prod"])
     mock_dbutils.widgets.dropdown.assert_called_once()
 
 def test_get_casts_value_correctly(mock_dbutils):
-    wm = WidgetManager()
+    wm = WidgetManager(dbutils_ref=mock_dbutils)
     assert wm.get("batch_size", "int") == 1000
     assert wm.get("debug", "bool") is True
     assert wm.get("env") == "prod"
 
 def test_get_all_returns_all_widget_values(mock_dbutils):
-    wm = WidgetManager()
+    wm = WidgetManager(dbutils_ref=mock_dbutils)
     result = wm.get_all()
 
     expected = {
@@ -72,7 +76,7 @@ def test_get_all_returns_all_widget_values(mock_dbutils):
     assert result == expected
 
 def test_as_config_dict_casts_properly(mock_dbutils):
-    wm = WidgetManager()
+    wm = WidgetManager(dbutils_ref=mock_dbutils)
     cast_map = {"batch_size": "int", "debug": "bool", "env": "str"}
     config = wm.as_config_dict(cast_map)
 
@@ -82,13 +86,13 @@ def test_as_config_dict_casts_properly(mock_dbutils):
 
 
 def test_remove_all_calls_remove(mock_dbutils):
-    wm = WidgetManager()
+    wm = WidgetManager(dbutils_ref=mock_dbutils)
     wm.remove_all()
     expected_count = len(mock_dbutils.widgets.getArgumentNames.return_value)
     assert mock_dbutils.widgets.remove.call_count == expected_count
 
 def test_create_base_widgets_sets_expected(mock_dbutils):
-    wm = WidgetManager()
+    wm = WidgetManager(dbutils_ref=mock_dbutils)
     create_base_widgets(wm)
 
     call_args = [call[0][0] for call in mock_dbutils.widgets.get.call_args_list]
