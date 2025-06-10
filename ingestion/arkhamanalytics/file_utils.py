@@ -90,11 +90,20 @@ def detect_and_read_file(
     spark: SparkSession,
     file_path: str,
     encoding: Optional[str] = None,
+    sheet_name: Optional[str] = None,
+    start_cell: Optional[str] = None,
 ) -> DataFrame:
     """Convenience wrapper to detect file format and read the file."""
     try:
         file_format = get_file_extension(file_path)
-        return read_file_as_df(spark, file_path, file_format, encoding)
+        return read_file_as_df(
+            spark,
+            file_path,
+            file_format,
+            encoding,
+            sheet_name,
+            start_cell,
+        )
     except Exception as e:
         logger.error(f"Error in detect_and_read_file: {str(e)}")
         raise RuntimeError(f"Failed to detect/read file {file_path}: {str(e)}")
