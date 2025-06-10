@@ -81,10 +81,22 @@ class WidgetManager:
         return result
 
     def remove_all(self):
-        """Remove all widgets (useful for reruns)."""
-        for name in self.dbutils.widgets.getArgumentNames():
-            self.dbutils.widgets.remove(name)
-        logger.info("All widgets removed.")
+        """Remove all known widgets. This avoids using deprecated getArgumentNames()."""
+        known_widgets = [
+            "batch_size", "debug", "env",
+            "container_name", "file_pattern", "file_encoding", "file_delimiter",
+            "file_quotechar", "file_escapechar", "skip_lines", "audit_table",
+            "sheet_name", "start_cell"
+        ]
+    
+        for name in known_widgets:
+            try:
+                self.dbutils.widgets.remove(name)
+            except Exception:
+                pass  # Ignore if widget doesn't exist
+    
+        logger.info("Known widgets removed.")
+
 
 
 @dataclass
