@@ -34,6 +34,8 @@ def read_file_as_df(
     file_path: str,
     file_format: str,
     encoding: Optional[str] = None,
+    sheet_name: Optional[str] = None,
+    start_cell: Optional[str] = None,
 ) -> DataFrame:
     """Read file into a PySpark DataFrame based on format and encoding."""
     if not exists(file_path):
@@ -61,11 +63,17 @@ def read_file_as_df(
 
         elif file_format in ["xls", "xlsx"]:
             logger.info(f"Reading Excel file: {file_path}")
+    
+            # Default to "A1" if nothing is provided
+            sheet = sheet_name or "Sheet1"
+            cell = start_cell or "A1"
+            data_address = f"'{sheet}'!{cell}"
+    
             return (
                 spark.read.format("com.crealytics.spark.excel")
                 .option("header", "true")
                 .option("inferSchema", "true")
-                .option("dataAddress", "A1")
+                .option("dataAddress", data_address)
                 .option("maxRowsInMemory", 1000)
                 .load(file_path)
             )
