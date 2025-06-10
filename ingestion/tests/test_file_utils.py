@@ -63,4 +63,4 @@ def test_read_excel_constructs_data_address_correctly(spark, tmp_path):
         )
 
         mock_reader.option.assert_any_call("dataAddress", "'MySheet'!B5")
-        assert result == "mock_df
+        assert result == "mock_df"
