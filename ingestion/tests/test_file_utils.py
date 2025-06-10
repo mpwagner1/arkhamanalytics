@@ -44,14 +44,14 @@ def test_read_excel_constructs_data_address_correctly(spark, tmp_path):
     with (
         patch("arkhamanalytics.file_utils.exists", return_value=True),
         patch("arkhamanalytics.file_utils.detect_file_encoding", return_value="utf-8"),
+        patch.object(type(spark), "read", new_callable=PropertyMock) as mock_read,
     ):
         mock_reader = MagicMock()
+        mock_read.return_value = mock_reader
+
         mock_reader.format.return_value = mock_reader
         mock_reader.option.return_value = mock_reader
         mock_reader.load.return_value = "mock_df"
-
-        # Patch the .read property directly on this spark instance
-        spark.read = mock_reader
 
         result = read_file_as_df(
             spark=spark,
