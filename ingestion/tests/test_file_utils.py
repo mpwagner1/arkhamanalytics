@@ -1,7 +1,6 @@
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, PropertyMock
 from arkhamanalytics.file_utils import get_file_extension, detect_file_encoding, read_file_as_df
-
 
 @pytest.mark.parametrize("filename,expected", [
     ("file.csv", "csv"),
