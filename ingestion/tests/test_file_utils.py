@@ -1,5 +1,6 @@
 import pytest
-from arkhamanalytics.file_utils import get_file_extension, detect_file_encoding
+from unittest.mock import MagicMock, patch
+from arkhamanalytics.file_utils import get_file_extension, detect_file_encoding, read_file_as_df
 
 
 @pytest.mark.parametrize("filename,expected", [
@@ -35,3 +36,33 @@ def test_detect_file_encoding_raises_file_not_found():
     """Ensure detect_file_encoding raises on missing file."""
     with pytest.raises(FileNotFoundError):
         detect_file_encoding("/nonexistent/file.txt")
+
+def test_read_excel_constructs_data_address_correctly(spark, tmp_path):
+    test_file = tmp_path / "test.xlsx"
+    test_file.write_text("fake content")
+
+    with (
+        patch("arkhamanalytics.file_utils.exists", return_value=True),
+        patch("arkhamanalytics.file_utils.detect_file_encoding", return_value="utf-8"),
+        patch("pyspark.sql.SparkSession.read") as mock_reader,
+    ):
+        mock_format = MagicMock()
+        mock_option = MagicMock()
+        mock_load = MagicMock()
+
+        mock_reader.return_value = mock_format
+        mock_format.format.return_value = mock_option
+        mock_option.option.return_value = mock_option
+        mock_option.load.return_value = mock_load
+
+        result = read_file_as_df(
+            spark=spark,
+            file_path=str(test_file),
+            file_format="xlsx",
+            encoding="utf-8",
+            sheet_name="MySheet",
+            start_cell="B5",
+        )
+
+        mock_option.option.assert_any_call("dataAddress", "'MySheet'!B5")
+        assert result == mock_load
