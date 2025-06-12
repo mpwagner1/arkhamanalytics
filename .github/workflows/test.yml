@@ -22,17 +22,29 @@ jobs:
       - name: Install test dependencies
         run: |
           pip install -r ingestion/requirements-dev.txt
+          pip install pytest-cov  # Ensure coverage is available
 
-      - name: Run tests with Pytest
+      - name: Run tests with coverage
         run: |
-          PYTHONPATH=ingestion pytest ingestion/tests/ --maxfail=3 --disable-warnings -v
+          PYTHONPATH=ingestion pytest \
+            --cov=ingestion/arkhamanalytics \
+            --cov-report=term \
+            --cov-report=xml \
+            ingestion/tests/
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          flags: unittests
+          name: codecov-pytest
 
       - name: Check formatting with Black
         id: black_check
         continue-on-error: true
         run: |
           black --check ingestion/arkhamanalytics ingestion/tests
-      
+          
       - name: Auto-format with Black if needed
         if: steps.black_check.outcome == 'failure'
         run: |
@@ -42,4 +54,3 @@ jobs:
       - name: Lint with Flake8
         run: |
           flake8 ingestion/arkhamanalytics ingestion/tests --config=.flake8
-
