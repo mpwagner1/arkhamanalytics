@@ -47,3 +47,7 @@ def power(base: float, exp: int) -> float:
 
 def square(x: float) -> float:
     return x * x
+
+def is_anagram(word1: str, word2: str) -> bool:
+    """Check if two strings are anagrams of each other."""
+    return sorted(word1.lower()) == sorted(word2.lower())
