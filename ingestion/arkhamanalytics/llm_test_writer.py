@@ -10,8 +10,11 @@ def replace_module_name(code: str, module_path: Path) -> str:
     lines = code.splitlines()
     updated_lines = []
     for line in lines:
-        if line.strip().startswith("from ") and (
-            "your_module" in line or "your_module_name" in line or "example_module" in line
+        if (
+            "from your_module" in line
+            or "from your_module_name" in line
+            or "from example_module" in line
+            or "from module_name" in line
         ):
             updated_lines.append(f"from {import_path} import (")
         else:
@@ -36,15 +39,16 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
         module_code = f.read()
 
     prompt = (
-        "Write only the pytest unit tests as valid Python code for the following module. "
-        "Do not include markdown formatting, explanations, or commentary. "
-        "Only output the test code, suitable for saving directly to a .py file.\n\n"
+        f"Write only the pytest unit tests as valid Python code for the following module. "
+        f"Use `from arkhamanalytics.{module_name} import ...` for all function imports. "
+        f"Do not include markdown formatting, explanations, or commentary. "
+        f"Only output the raw test code, suitable for saving directly to a `.py` file.\n\n"
         f"{module_code}"
     )
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    print(f"📤 Sending prompt to LLM for: {module_name}.py")
+    print(f"Sending prompt to LLM for: {module_name}.py")
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
@@ -54,12 +58,7 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
         temperature=0.2,
     )
 
-    # Safely extract content
-    try:
-        test_code = response.choices[0].message.content
-    except (AttributeError, IndexError, KeyError) as e:
-        raise ValueError(f"Failed to parse LLM response: {e}")
-
+    test_code = response.choices[0].message.content
     test_code = replace_module_name(test_code, module_path)
 
     with open(output_path, "w") as out_file:
