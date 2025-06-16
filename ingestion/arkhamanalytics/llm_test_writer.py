@@ -2,7 +2,7 @@ from pathlib import Path
 import openai
 from arkhamanalytics.prompt_engine import get_prompt_for_module
 
-# === Safe dbutils loading for Databricks & testing ===
+# Use global dbutils if available (Databricks), but defer error until used
 try:
     dbutils  # noqa: F821
 except NameError:
@@ -13,14 +13,17 @@ try:
 except ImportError:
     DBUtils = None
 
-if dbutils is None:
-    raise RuntimeError("dbutils not available. Run this in a Databricks notebook environment.")
 
-# Load API key from Azure Key Vault
-openai.api_key = dbutils.secrets.get(scope="azure-secrets", key="open-ai-api-token")
+def _load_openai_key():
+    """Only call this when running in Databricks."""
+    if dbutils is None:
+        raise RuntimeError("dbutils not available. Run this in a Databricks notebook environment.")
+    return dbutils.secrets.get(scope="azure-secrets", key="open-ai-api-token")
 
 def call_llm(prompt: str, model: str = "gpt-4") -> str:
     """Call OpenAI with the given prompt and return the response text."""
+    openai.api_key = _load_openai_key()
+
     response = openai.ChatCompletion.create(
         model=model,
         messages=[
