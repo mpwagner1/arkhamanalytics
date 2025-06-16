@@ -8,6 +8,8 @@ on:
 jobs:
   generate-tests:
     runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}  # ✅ Add this line
     defaults:
       run:
         shell: bash
