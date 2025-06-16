@@ -28,6 +28,10 @@ jobs:
           pip install -r ingestion/requirements-dev.txt
           pip install openai
 
+      - name: Debug git log
+        run: |
+          git log --name-only -1 --pretty=format:
+
       - name: Run LLM Test Generator
         run: |
           PYTHONPATH=ingestion python ingestion/arkhamanalytics/run_llm_test_gen.py
