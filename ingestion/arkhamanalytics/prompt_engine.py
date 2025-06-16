@@ -24,14 +24,18 @@ def get_prompt_for_module(module_path: Path) -> str:
     if uses_dbutils:
         instructions.append("Mock `dbutils.widgets` using `unittest.mock`.")
     if uses_delta:
-        instructions.append("If Delta Lake writes are used, simulate file-based writes using a temp path or mock them.")
+        instructions.append(
+            "If Delta Lake writes are used, simulate file-based writes using a temp path or mock them."
+        )
 
     # Final prompt
-    full_prompt = f"""{prompt_intro}
+    full_prompt = (
+        f"{prompt_intro}\n\n"
+        + "\n".join(instructions)
+        + "\n\nHere is the source code for the module:\n\n"
+        + "```python\n"
+        + code
+        + "\n```"
+    )
 
-{chr(10).join(instructions)}
-
-Here is the source code for the module:
-
-```python
-{code}
+    return full_prompt
