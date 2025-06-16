@@ -4,9 +4,9 @@ from arkhamanalytics.prompt_engine import get_prompt_for_module
 
 
 def get_changed_modules(base_dir: Path) -> list[Path]:
-    """Detects Python files changed since origin/main."""
+    """Detects Python files changed in the most recent commit."""
     result = subprocess.run(
-        ["git", "diff", "--name-only", "origin/main"],
+        ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
         capture_output=True,
         text=True,
         check=False,
@@ -17,7 +17,6 @@ def get_changed_modules(base_dir: Path) -> list[Path]:
         for f in changed_files
         if f.endswith(".py") and "test_" not in f and "scripts/" not in f
     ]
-
 
 def main():
     base_dir = Path(__file__).resolve().parent.parent
