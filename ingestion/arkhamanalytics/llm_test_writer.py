@@ -1,32 +1,35 @@
 import os
+import ast
 from pathlib import Path
 from openai import OpenAI
 
 
 def replace_module_name(code: str, module_path: Path) -> str:
+    """Replace placeholder import with the actual module path."""
     module_name = module_path.stem
     import_path = f"arkhamanalytics.{module_name}"
     lines = code.splitlines()
     updated_lines = []
     for line in lines:
-        if "from your_module" in line or "from your_module_name" in line or "from module_name" in line:
+        if any(keyword in line for keyword in ["from your_module", "from your_module_name", "from example_module", "from module_name"]):
             updated_lines.append(f"from {import_path} import (")
         else:
             updated_lines.append(line)
     return "\n".join(updated_lines)
 
 
-def strip_markdown_fences(code: str) -> str:
-    """Remove any leading/trailing markdown code fences like ```python or `````"""
-    lines = code.strip().splitlines()
-    if lines and lines[0].strip().startswith("```"):
-        lines = lines[1:]
-    if lines and lines[-1].strip().startswith("```"):
-        lines = lines[:-1]
-    return "\n".join(lines)
+def is_valid_python(code: str) -> bool:
+    """Check if the generated code is syntactically valid."""
+    try:
+        ast.parse(code)
+        return True
+    except SyntaxError as e:
+        print(f"Syntax error in generated code: {e}")
+        return False
 
 
 def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool = True) -> None:
+    """Generate a Pytest-compatible test file using OpenAI for a given module."""
     module_name = module_path.stem
     test_file_name = f"test_{module_name}.py"
     output_path = output_dir / test_file_name
@@ -42,9 +45,9 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
         module_code = f.read()
 
     prompt = (
-        "Write only the pytest unit tests as valid Python code for the following module. "
+        "Write only the Pytest unit tests as valid Python code for the following module. "
         "Do not include markdown formatting, explanations, or commentary. "
-        "Only output valid test code, suitable for saving directly to a .py file.\n\n"
+        "Ensure the import block is complete and all parentheses are closed.\n\n"
         f"{module_code}"
     )
 
@@ -61,8 +64,10 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
     )
 
     test_code = response.choices[0].message.content
-    test_code = strip_markdown_fences(test_code)
     test_code = replace_module_name(test_code, module_path)
+
+    if not is_valid_python(test_code):
+        raise ValueError(f"Generated test code for {module_name}.py is invalid Python.")
 
     with open(output_path, "w") as out_file:
         out_file.write(test_code)
