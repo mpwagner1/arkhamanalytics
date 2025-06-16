@@ -30,3 +30,6 @@ def divide(a: float, b: float) -> float:
 def reverse_list(items: list) -> list:
     """Return the reversed list."""
     return items[::-1]
+
+def subtract(a: int, b: int) -> int:
+    return a - b
