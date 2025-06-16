@@ -29,8 +29,8 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
         temperature=0.2,
     )
 
-    test_code = response.choices[0].message["content"]
-
+    test_code = response.choices[0].message.content
+    
     with open(output_path, "w") as f:
         f.write(test_code)
 
