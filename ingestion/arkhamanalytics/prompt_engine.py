@@ -7,10 +7,14 @@ def get_prompt_for_module(module_path: Path) -> str:
     # Detect usage patterns
     uses_spark = "SparkSession" in code or "DataFrame" in code
     uses_dbutils = "dbutils" in code
-    uses_delta = "delta" in code or "saveAsTable" in code or 'format("delta")' in code
+    uses_delta = (
+        "delta" in code or "saveAsTable" in code or 'format("delta")' in code
+    )
 
     # Base context
-    prompt_intro = "You are generating unit tests for a modular ingestion framework written in Python."
+    prompt_intro = (
+        "You are generating unit tests for a modular ingestion framework written in Python."
+    )
     instructions = [
         "Use `pytest` for writing tests.",
         "Ensure test files follow flake8 and black formatting.",
@@ -20,12 +24,17 @@ def get_prompt_for_module(module_path: Path) -> str:
 
     # Tailor based on detected features
     if uses_spark:
-        instructions.append("Use PySpark's `SparkSession` and small test DataFrames as fixtures.")
+        instructions.append(
+            "Use PySpark's `SparkSession` and small test DataFrames as fixtures."
+        )
     if uses_dbutils:
-        instructions.append("Mock `dbutils.widgets` using `unittest.mock`.")
+        instructions.append(
+            "Mock `dbutils.widgets` using `unittest.mock`."
+        )
     if uses_delta:
         instructions.append(
-            "If Delta Lake writes are used, simulate file-based writes using a temp path or mock them."
+            "If Delta Lake writes are used, simulate file-based writes "
+            "using a temp path or mock them."
         )
 
     # Final prompt
