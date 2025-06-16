@@ -16,10 +16,14 @@ def get_prompt_for_module(module_path: Path) -> str:
         "You are generating unit tests for a modular ingestion framework written in Python."
     )
     instructions = [
-        "Use `pytest` for writing tests.",
-        "Ensure test files follow flake8 and black formatting.",
-        "Include both typical and edge case scenarios.",
-        "Use mocking where appropriate for external dependencies.",
+        "Use `pytest` for writing unit tests.",
+        "Ensure coverage is collected using `pytest-cov`.",
+        "Cover normal logic paths and edge cases.",
+        "Format test code to pass `black --check`.",
+        "Lint test code to pass `flake8` with max line length of 100.",
+        "Organize test files under `ingestion/tests/` with `test_*.py` naming.",
+        "Use mocking where appropriate (e.g., `dbutils`, Spark, file system).",
+        "Assume tests will run in CI using Python 3.10 on Ubuntu via GitHub Actions.",
     ]
 
     # Tailor based on detected features
