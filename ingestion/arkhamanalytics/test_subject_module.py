@@ -1,0 +1,32 @@
+def is_palindrome(text: str) -> bool:
+    """Check if a string is a palindrome."""
+    return text == text[::-1]
+
+
+def add_numbers(a: int, b: int) -> int:
+    """Add two integers."""
+    return a + b
+
+
+def get_max_value(numbers: list[int]) -> int:
+    """Return the maximum value in a list."""
+    if not numbers:
+        raise ValueError("List cannot be empty")
+    return max(numbers)
+
+
+def normalize_string(text: str) -> str:
+    """Strip, lowercase, and collapse multiple spaces."""
+    return " ".join(text.strip().lower().split())
+
+
+def divide(a: float, b: float) -> float:
+    """Divide two numbers, raising an error on division by zero."""
+    if b == 0:
+        raise ZeroDivisionError("Division by zero is not allowed.")
+    return a / b
+
+
+def reverse_list(items: list) -> list:
+    """Return the reversed list."""
+    return items[::-1]
