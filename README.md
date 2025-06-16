@@ -1,6 +1,6 @@
 # ArkhamAnalytics Databricks Project
 
-[![codecov](https://codecov.io/gh/mpwagner1/arkhamanalytics/branch/main/graph/badge.svg)](https://codecov.io/gh/mpwagner1/arkhamanalytics)
+[![codecov](https://codecov.io/gh/mpwagner1/arkhamanalytics/graph/badge.svg?token=QD65PZ75BF)](https://codecov.io/gh/mpwagner1/arkhamanalytics)
 
 ## 🧩 Structure
 - `modules/`: Reusable Python modules (e.g., mounting, logging)
