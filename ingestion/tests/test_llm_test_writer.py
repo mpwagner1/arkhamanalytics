@@ -1,4 +1,3 @@
-import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 from arkhamanalytics.llm_test_writer import generate_test_file
