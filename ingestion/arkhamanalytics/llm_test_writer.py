@@ -1,5 +1,6 @@
 from pathlib import Path
 import openai
+import os
 from arkhamanalytics.prompt_engine import get_prompt_for_module
 from arkhamanalytics.test_header_utils import build_test_header
 import hashlib
@@ -16,9 +17,13 @@ except ImportError:
     DBUtils = None
 
 def _load_openai_key():
-    if dbutils is None:
-        raise RuntimeError("dbutils not available. Run this in a Databricks notebook environment.")
-    return dbutils.secrets.get(scope="azure-secrets", key="open-ai-api-token")
+    if dbutils is not None:
+        return dbutils.secrets.get(scope="azure-secrets", key="open-ai-api-token")
+    # Fallback for CI environments like GitHub Actions
+    key = os.getenv("OPENAI_API_KEY")
+    if not key:
+        raise RuntimeError("OpenAI API key not set in environment variable.")
+    return key
 
 def extract_existing_prompt_hash(test_path: Path) -> str | None:
     if not test_path.exists():
