@@ -2,6 +2,7 @@ from pathlib import Path
 import openai
 from arkhamanalytics.prompt_engine import get_prompt_for_module
 from arkhamanalytics.test_header_utils import build_test_header
+import hashlib
 
 # Use global dbutils if available (Databricks), but defer error until used
 try:
@@ -19,6 +20,16 @@ def _load_openai_key():
     if dbutils is None:
         raise RuntimeError("dbutils not available. Run this in a Databricks notebook environment.")
     return dbutils.secrets.get(scope="azure-secrets", key="open-ai-api-token")
+
+
+def extract_existing_prompt_hash(test_path: Path) -> str | None:
+    if not test_path.exists():
+        return None
+    for line in test_path.read_text().splitlines():
+        if line.startswith("# Prompt SHA256:"):
+            return line.split(":", 1)[1].strip()
+    return None
+
 
 def call_llm(prompt: str, model: str = "gpt-4o") -> str:
     openai.api_key = _load_openai_key()
@@ -38,11 +49,15 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
     test_filename = f"test_{module_path.stem}.py"
     test_path = output_dir / test_filename
 
-    if skip_if_exists and test_path.exists():
-        print(f"⚠️ Skipping {test_path.name} (already exists).")
-        return test_path
-
     prompt = get_prompt_for_module(module_path)
+    new_hash = hashlib.sha256(prompt.encode("utf-8")).hexdigest()[:12]
+
+    if skip_if_exists and test_path.exists():
+        old_hash = extract_existing_prompt_hash(test_path)
+        if old_hash == new_hash:
+            print(f"✅ Skipping {test_path.name} (prompt hash unchanged).")
+            return test_path
+
     header = build_test_header(prompt, module_path.name)
     print(f"📤 Sending prompt to LLM for: {module_path.name}")
     test_code = call_llm(prompt)
