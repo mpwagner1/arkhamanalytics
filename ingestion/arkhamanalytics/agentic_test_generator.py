@@ -27,8 +27,8 @@ def get_changed_modules() -> list[Path]:
             and "scripts" not in str(rel_path)
         ):
             changed_modules.append(full_path)
-
     return changed_modules
+
 
 def main():
     changed_modules = get_changed_modules()
