@@ -47,4 +47,3 @@ def power(base: float, exp: int) -> float:
 
 def square(x: float) -> float:
     return x * x
-## TEST ##
