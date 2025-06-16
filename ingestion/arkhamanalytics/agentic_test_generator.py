@@ -4,9 +4,9 @@ from arkhamanalytics.prompt_engine import get_prompt_for_module
 
 
 def get_changed_modules(base_dir: Path) -> list[Path]:
-    """Detects .py files added or modified in the most recent commit."""
+    """Detects Python files touched in the last commit (works with GitHub UI commits)."""
     result = subprocess.run(
-        ["git", "show", "--pretty=", "--name-only", "HEAD"],
+        ["git", "log", "--name-only", "-1", "--pretty=format:"],
         capture_output=True,
         text=True,
         check=False,
