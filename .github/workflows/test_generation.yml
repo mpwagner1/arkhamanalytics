@@ -39,11 +39,13 @@ jobs:
           fi
 
       - name: Debug git log
-        run: git log --name-only -1 --pretty=format:
+        run: |
+          git log --name-only -1 --pretty=format:
 
       - name: Run LLM Test Generator
-        run: PYTHONPATH=ingestion python ingestion/arkhamanalytics/run_llm_test_gen.py
-
+        run: |
+          PYTHONPATH=ingestion python ingestion/arkhamanalytics/run_llm_test_gen.py
+          
       - name: Create Pull Request with Generated Tests
         uses: peter-evans/create-pull-request@v5
         with:
