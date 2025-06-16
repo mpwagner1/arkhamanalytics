@@ -3,8 +3,7 @@ from pathlib import Path
 from arkhamanalytics.prompt_engine import get_prompt_for_module
 
 def get_changed_modules() -> list[Path]:
-    """Detect Python modules changed in the last commit (normalized for GitHub Actions)."""
-    repo_root = Path(__file__).resolve().parents[2]  # repo root
+    repo_root = Path(__file__).resolve().parents[2]
     result = subprocess.run(
         ["git", "log", "--name-only", "-1", "--pretty=format:"],
         capture_output=True,
@@ -13,20 +12,29 @@ def get_changed_modules() -> list[Path]:
     )
     changed_files = result.stdout.strip().splitlines()
 
+    print("\n🔍 Raw changed files from git log:")
+    for f in changed_files:
+        print(f)
+
     changed_modules = []
 
     for f in changed_files:
         full_path = (repo_root / f).resolve()
         if not full_path.exists():
+            print(f"⚠️ File not found: {full_path}")
             continue
 
         rel_path = full_path.relative_to(repo_root)
+        print(f"👉 Considering: {rel_path}")
+
         if (
             rel_path.suffix == ".py"
             and "test_" not in rel_path.name
             and "scripts" not in str(rel_path)
         ):
+            print(f"✅ Will generate test for: {rel_path}")
             changed_modules.append(full_path)
+
     return changed_modules
 
 
