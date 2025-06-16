@@ -4,26 +4,29 @@ from openai import OpenAI
 
 
 def replace_module_name(code: str, module_path: Path) -> str:
-    """Replace placeholder import with the actual module path."""
     module_name = module_path.stem
     import_path = f"arkhamanalytics.{module_name}"
     lines = code.splitlines()
     updated_lines = []
     for line in lines:
-        if (
-            "from your_module" in line
-            or "from your_module_name" in line
-            or "from example_module" in line
-            or "from module_name" in line
-        ):
+        if "from your_module" in line or "from your_module_name" in line or "from module_name" in line:
             updated_lines.append(f"from {import_path} import (")
         else:
             updated_lines.append(line)
     return "\n".join(updated_lines)
 
 
+def strip_markdown_fences(code: str) -> str:
+    """Remove any leading/trailing markdown code fences like ```python or `````"""
+    lines = code.strip().splitlines()
+    if lines and lines[0].strip().startswith("```"):
+        lines = lines[1:]
+    if lines and lines[-1].strip().startswith("```"):
+        lines = lines[:-1]
+    return "\n".join(lines)
+
+
 def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool = True) -> None:
-    """Generate a Pytest-compatible test file using OpenAI for a given module."""
     module_name = module_path.stem
     test_file_name = f"test_{module_name}.py"
     output_path = output_dir / test_file_name
@@ -39,10 +42,9 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
         module_code = f.read()
 
     prompt = (
-        f"Write only the pytest unit tests as valid Python code for the following module. "
-        f"Use `from arkhamanalytics.{module_name} import ...` for all function imports. "
-        f"Do not include markdown formatting, explanations, or commentary. "
-        f"Only output the raw test code, suitable for saving directly to a `.py` file.\n\n"
+        "Write only the pytest unit tests as valid Python code for the following module. "
+        "Do not include markdown formatting, explanations, or commentary. "
+        "Only output valid test code, suitable for saving directly to a .py file.\n\n"
         f"{module_code}"
     )
 
@@ -59,6 +61,7 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
     )
 
     test_code = response.choices[0].message.content
+    test_code = strip_markdown_fences(test_code)
     test_code = replace_module_name(test_code, module_path)
 
     with open(output_path, "w") as out_file:
