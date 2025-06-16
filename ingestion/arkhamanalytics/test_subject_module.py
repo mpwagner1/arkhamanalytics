@@ -42,3 +42,5 @@ def safe_divide(a: float, b: float) -> float:
         raise ValueError("Cannot divide by zero")
     return a / b
 
+def power(base: float, exp: int) -> float:
+    return base ** exp
