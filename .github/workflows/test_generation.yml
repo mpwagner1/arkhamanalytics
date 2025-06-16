@@ -28,13 +28,21 @@ jobs:
           pip install -r ingestion/requirements-dev.txt
           pip install --upgrade openai
 
-      - name: Debug git log
+      - name: Confirm OpenAI version
+        run: python -c "import openai; print('OpenAI version:', openai.__version__)"
+
+      - name: Check if OPENAI_API_KEY is set
         run: |
-          git log --name-only -1 --pretty=format:
+          if [ -z \"$OPENAI_API_KEY\" ]; then
+            echo "OPENAI_API_KEY is not set."
+            exit 1
+          fi
+
+      - name: Debug git log
+        run: git log --name-only -1 --pretty=format:
 
       - name: Run LLM Test Generator
-        run: |
-          PYTHONPATH=ingestion python ingestion/arkhamanalytics/run_llm_test_gen.py
+        run: PYTHONPATH=ingestion python ingestion/arkhamanalytics/run_llm_test_gen.py
 
       - name: Create Pull Request with Generated Tests
         uses: peter-evans/create-pull-request@v5
