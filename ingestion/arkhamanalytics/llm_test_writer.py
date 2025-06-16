@@ -1,7 +1,5 @@
 from pathlib import Path
 import openai
-from datetime import datetime
-import hashlib
 from arkhamanalytics.prompt_engine import get_prompt_for_module
 from arkhamanalytics.test_header_utils import build_test_header
 
