@@ -16,6 +16,10 @@ def get_prompt_for_module(module_path: Path) -> str:
         "You are generating unit tests for a modular ingestion framework "
         "written in Python."
     )
+    
+    # Compute importable module name from path
+    module_import = f"from arkhamanalytics.{module_path.stem} import *"
+
     instructions = [
         "Use `pytest` for writing unit tests.",
         "Ensure coverage is collected using `pytest-cov`.",
@@ -25,9 +29,9 @@ def get_prompt_for_module(module_path: Path) -> str:
         "Organize test files under `ingestion/tests/` with `test_*.py` naming.",
         "Use mocking where appropriate (e.g., `dbutils`, Spark, file system).",
         "Assume tests will run in CI using Python 3.10 on Ubuntu via GitHub Actions.",
+        f"At the top of the test file, include:\n\n```python\n{module_import}\n```",
     ]
 
-    # Tailor based on detected features
     if uses_spark:
         instructions.append(
             "Use PySpark's `SparkSession` and small test DataFrames as fixtures."
@@ -42,7 +46,6 @@ def get_prompt_for_module(module_path: Path) -> str:
             "using a temp path or mock them."
         )
 
-    # Final prompt
     full_prompt = (
         f"{prompt_intro}\n\n"
         + "\n".join(instructions)
