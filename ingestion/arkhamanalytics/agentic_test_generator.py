@@ -24,18 +24,18 @@ def main():
     changed_modules = get_changed_modules(base_dir)
 
     if not changed_modules:
-        print("✅ No Python module changes detected.")
+        print("No Python module changes detected.")
         return
 
     for module_path in changed_modules:
-        print(f"\n📦 Processing: {module_path}")
+        print(f"\n Processing: {module_path}")
         try:
             prompt = get_prompt_for_module(module_path)
-            print(f"\n🧠 Prompt Preview for {module_path.name}:\n")
+            print(f"\n Prompt Preview for {module_path.name}:\n")
             print(prompt[:1000])  # Preview first 1000 chars
             print("...prompt truncated...\n")
         except Exception as e:
-            print(f"❌ Failed to generate prompt for {module_path.name}: {e}")
+            print(f" Failed to generate prompt for {module_path.name}: {e}")
 
 
 if __name__ == "__main__":
