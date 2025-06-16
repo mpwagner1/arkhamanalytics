@@ -4,13 +4,23 @@ from arkhamanalytics.prompt_engine import get_prompt_for_module
 
 
 def get_changed_modules(base_dir: Path) -> list[Path]:
-    """Detects Python files added or modified in the last commit."""
-    result = subprocess.run(
-        ["git", "diff", "--name-only", "HEAD^", "HEAD"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
+    """Detects Python files added or modified in the last commit or against origin/main."""
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--name-only", "HEAD^", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError:
+        print("⚠️ Git diff HEAD^ HEAD failed — falling back to origin/main comparison.")
+        result = subprocess.run(
+            ["git", "diff", "--name-only", "origin/main"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
     changed_files = result.stdout.strip().splitlines()
     return [
         base_dir / f
