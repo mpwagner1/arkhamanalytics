@@ -51,4 +51,4 @@ def square(x: float) -> float:
 def is_anagram(word1: str, word2: str) -> bool:
     """Check if two strings are anagrams of each other."""
     return sorted(word1.lower()) == sorted(word2.lower())
-#Final Test
+#Final Test 1
