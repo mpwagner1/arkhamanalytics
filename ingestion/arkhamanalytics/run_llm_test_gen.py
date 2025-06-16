@@ -8,7 +8,6 @@ def main():
     parser.add_argument("--force", action="store_true", help="Overwrite existing test files.")
     args = parser.parse_args()
 
-    base_dir = Path("ingestion/arkhamanalytics")
     output_dir = Path("ingestion/tests")
     output_dir.mkdir(parents=True, exist_ok=True)
 
