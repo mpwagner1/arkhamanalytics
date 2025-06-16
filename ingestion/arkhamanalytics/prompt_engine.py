@@ -13,7 +13,8 @@ def get_prompt_for_module(module_path: Path) -> str:
 
     # Base context
     prompt_intro = (
-        "You are generating unit tests for a modular ingestion framework written in Python."
+        "You are generating unit tests for a modular ingestion framework "
+        "written in Python."
     )
     instructions = [
         "Use `pytest` for writing unit tests.",
