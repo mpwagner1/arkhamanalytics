@@ -13,7 +13,7 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print("🔍 Detecting changed modules...")
-    changed = get_changed_modules(base_dir)
+    changed = get_changed_modules()
 
     if not changed:
         print("✅ No new or changed modules detected.")
