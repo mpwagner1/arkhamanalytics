@@ -35,28 +35,25 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
     with open(module_path, "r") as f:
         module_code = f.read()
 
-    prompt = f"Write Pytest unit tests for the following module:\n\n{module_code}"
+    prompt = f"Write pytest unit tests for the following module:\n\n{module_code}"
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    print(f"📤 Sending prompt to LLM for: {module_name}.py")
 
+    print(f"Sending prompt to LLM for: {module_name}.py")
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
-            {
-                "role": "system",
-                "content": "You are a helpful assistant that writes clean Pytest unit tests.",
-            },
+            {"role": "system", "content": "You are a helpful assistant that writes clean Pytest unit tests."},
             {"role": "user", "content": prompt},
         ],
         temperature=0.2,
     )
 
-    full_response = response.choices[0].message.content
-    test_code = extract_python_code(full_response)
+    # Patch incorrect module import if needed
+    test_code = response.choices[0].message.content
     test_code = replace_module_name(test_code, module_path)
 
-    with open(output_path, "w") as f:
-        f.write(test_code)
+    with open(output_path, "w") as out_file:
+        out_file.write(test_code)
 
-    print(f"✅ Test written to: {output_path}")
+    print(f"Test file written to: {output_path}")
