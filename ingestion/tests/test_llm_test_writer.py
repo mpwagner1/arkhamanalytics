@@ -1,4 +1,3 @@
-from pathlib import Path
 from arkhamanalytics.llm_test_writer import generate_test_file
 
 @patch("arkhamanalytics.llm_test_writer.call_llm")
