@@ -28,7 +28,7 @@ jobs:
       - name: Install test dependencies
         run: |
           pip install -r ingestion/requirements-dev.txt
-          pip install openai
+          pip install openai==0.28
 
       - name: Debug git log
         run: |
