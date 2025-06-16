@@ -10,6 +10,6 @@ def test_get_changed_modules_filters_tests(monkeypatch, tmp_path):
     ]
     monkeypatch.setattr(subprocess, "run", lambda *a, **k: type("Result", (), {"stdout": "\n".join(test_files)}))
 
-    changed = get_changed_modules(Path.cwd())
+    changed = get_changed_modules()
     assert "test_file_utils.py" not in [str(p) for p in changed]
     assert any("file_utils.py" in str(p) for p in changed)
