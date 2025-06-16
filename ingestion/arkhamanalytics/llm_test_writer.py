@@ -3,12 +3,17 @@ from pathlib import Path
 from openai import OpenAI
 
 def extract_python_code(response_text: str) -> str:
-    """Extract Python code block from LLM markdown output."""
+    """Extracts the Python code block from LLM response."""
     if "```python" in response_text:
         return response_text.split("```python")[1].split("```")[0].strip()
     elif "```" in response_text:
         return response_text.split("```")[1].split("```")[0].strip()
     return response_text.strip()
+
+def replace_module_name(code: str, module_path: Path) -> str:
+    """Replaces 'your_module' in import with actual module name."""
+    module = module_path.stem
+    return code.replace("from your_module import", f"from {module} import")
 
 def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool = True) -> None:
     module_name = module_path.stem
@@ -39,9 +44,9 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
         temperature=0.2,
     )
 
-    # Extract the clean code block
     full_response = response.choices[0].message.content
     test_code = extract_python_code(full_response)
+    test_code = replace_module_name(test_code, module_path)
 
     with open(output_path, "w") as f:
         f.write(test_code)
