@@ -45,4 +45,6 @@ def safe_divide(a: float, b: float) -> float:
 def power(base: float, exp: int) -> float:
     return base ** exp
 
+def square(x: float) -> float:
+    return x * x
 ## TEST ##
