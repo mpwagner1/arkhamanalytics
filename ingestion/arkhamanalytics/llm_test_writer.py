@@ -26,16 +26,21 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
     output_path = output_dir / test_file_name
 
     if skip_if_exists and output_path.exists():
-        print(f"🟡 Skipping existing test: {output_path}")
+        print(f"Skipping existing test: {output_path}")
         return
 
     if not os.getenv("OPENAI_API_KEY"):
-        raise EnvironmentError("❌ OPENAI_API_KEY not set in environment.")
+        raise EnvironmentError("OPENAI_API_KEY not set in environment.")
 
     with open(module_path, "r") as f:
         module_code = f.read()
 
-    prompt = f"Write pytest unit tests for the following Python module:\n\n```python\n{module_code}\n```"
+    prompt = (
+        "Write only the pytest unit tests as valid Python code for the following module. "
+        "Do not include markdown formatting, explanations, or commentary. "
+        "Only output the test code, suitable for saving directly to a .py file.\n\n"
+        f"{module_code}"
+    )
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -53,11 +58,11 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
     try:
         test_code = response.choices[0].message.content
     except (AttributeError, IndexError, KeyError) as e:
-        raise ValueError(f"❌ Failed to parse LLM response: {e}")
+        raise ValueError(f"Failed to parse LLM response: {e}")
 
     test_code = replace_module_name(test_code, module_path)
 
     with open(output_path, "w") as out_file:
         out_file.write(test_code)
 
-    print(f"✅ Test file written to: {output_path}")
+    print(f"Test file written to: {output_path}")
