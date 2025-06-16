@@ -4,14 +4,15 @@ from arkhamanalytics.prompt_engine import get_prompt_for_module
 
 
 def get_changed_modules(base_dir: Path) -> list[Path]:
-    """Detects Python files changed in the most recent commit."""
+    """Detects .py files added or modified in the most recent commit."""
     result = subprocess.run(
-        ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"],
+        ["git", "show", "--pretty=", "--name-only", "HEAD"],
         capture_output=True,
         text=True,
         check=False,
     )
     changed_files = result.stdout.strip().splitlines()
+
     return [
         base_dir / f
         for f in changed_files
