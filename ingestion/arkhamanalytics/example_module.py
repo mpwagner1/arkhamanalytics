@@ -24,7 +24,6 @@ def divide(a: float, b: float) -> float:
         raise ZeroDivisionError("Division by zero is not allowed.")
     return a / b
 
-
 def reverse_list(items: list) -> list:
     """Return the reversed list."""
     return items[::-1]
@@ -49,4 +48,4 @@ def square(x: float) -> float:
 def is_anagram(word1: str, word2: str) -> bool:
     """Check if two strings are anagrams of each other."""
     return sorted(word1.lower()) == sorted(word2.lower())
-#Final Test 
+#Final Test 1
