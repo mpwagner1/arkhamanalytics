@@ -2,9 +2,8 @@ import subprocess
 from pathlib import Path
 from arkhamanalytics.prompt_engine import get_prompt_for_module
 
-
 def get_changed_modules() -> list[Path]:
-    base_dir = Path(__file__).resolve().parent.parent
+    """Detect Python files changed in the last commit."""
     result = subprocess.run(
         ["git", "log", "--name-only", "-1", "--pretty=format:"],
         capture_output=True,
@@ -12,8 +11,9 @@ def get_changed_modules() -> list[Path]:
         check=False,
     )
     changed_files = result.stdout.strip().splitlines()
+
     return [
-        base_dir / f
+        Path(f).resolve()
         for f in changed_files
         if f.endswith(".py") and "test_" not in f and "scripts/" not in f
     ]
