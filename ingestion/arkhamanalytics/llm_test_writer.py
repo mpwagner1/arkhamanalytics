@@ -2,16 +2,9 @@ import os
 from pathlib import Path
 from openai import OpenAI
 
-def extract_python_code(response_text: str) -> str:
-    """Extracts the Python code block from LLM response."""
-    if "```python" in response_text:
-        return response_text.split("```python")[1].split("```")[0].strip()
-    elif "```" in response_text:
-        return response_text.split("```")[1].split("```")[0].strip()
-    return response_text.strip()
 
 def replace_module_name(code: str, module_path: Path) -> str:
-    """Replace 'from your_module' with the correct module path for imports."""
+    """Replace placeholder import with the actual module path."""
     module_name = module_path.stem
     import_path = f"arkhamanalytics.{module_name}"
     lines = code.splitlines()
@@ -22,6 +15,7 @@ def replace_module_name(code: str, module_path: Path) -> str:
         else:
             updated_lines.append(line)
     return "\n".join(updated_lines)
+
 
 def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool = True) -> None:
     module_name = module_path.stem
@@ -49,7 +43,6 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
         temperature=0.2,
     )
 
-    # Patch incorrect module import if needed
     test_code = response.choices[0].message.content
     test_code = replace_module_name(test_code, module_path)
 
