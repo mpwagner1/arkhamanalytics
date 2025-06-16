@@ -33,3 +33,6 @@ def reverse_list(items: list) -> list:
 
 def subtract(a: int, b: int) -> int:
     return a - b
+
+def multiply(a: int, b: int) -> int:
+    return a * b
