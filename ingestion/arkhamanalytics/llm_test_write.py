@@ -2,18 +2,22 @@ from pathlib import Path
 import openai
 from arkhamanalytics.prompt_engine import get_prompt_for_module
 
-# Load OpenAI key from Azure Key Vault (via Databricks secrets)
+# === Safe dbutils loading for Databricks & testing ===
 try:
-    from pyspark.dbutils import DBUtils  # For type hints if needed
+    dbutils  # noqa: F821
+except NameError:
+    dbutils = None
+
+try:
+    from pyspark.dbutils import DBUtils  # noqa: F401
 except ImportError:
     DBUtils = None
 
-# Use existing dbutils if available (Databricks), else raise error
-if "dbutils" not in globals() or dbutils is None:
-    raise RuntimeError("dbutils is not available. This script must run in Databricks.")
+if dbutils is None:
+    raise RuntimeError("dbutils not available. Run this in a Databricks notebook environment.")
 
+# Load API key from Azure Key Vault
 openai.api_key = dbutils.secrets.get(scope="azure-secrets", key="open-ai-api-token")
-
 
 def call_llm(prompt: str, model: str = "gpt-4") -> str:
     """Call OpenAI with the given prompt and return the response text."""
@@ -28,7 +32,6 @@ def call_llm(prompt: str, model: str = "gpt-4") -> str:
     )
     return response["choices"][0]["message"]["content"].strip()
 
-
 def generate_test_file(module_path: Path, output_dir: Path) -> Path:
     """Generate a test file using OpenAI and write it to ingestion/tests."""
     prompt = get_prompt_for_module(module_path)
@@ -39,9 +42,8 @@ def generate_test_file(module_path: Path, output_dir: Path) -> Path:
     test_path = output_dir / test_filename
     test_path.write_text(test_code)
 
-    print(f"✅ Test file written: {test_path}")
+    print(f"Test file written: {test_path}")
     return test_path
-
 
 if __name__ == "__main__":
     import sys
@@ -54,7 +56,7 @@ if __name__ == "__main__":
     output_folder = Path("ingestion/tests").resolve()
 
     if not module_file.exists():
-        print(f"❌ File not found: {module_file}")
+        print(f"File not found: {module_file}")
         sys.exit(1)
 
     output_folder.mkdir(parents=True, exist_ok=True)
