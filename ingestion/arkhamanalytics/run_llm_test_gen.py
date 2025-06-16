@@ -16,14 +16,14 @@ def main():
     changed = get_changed_modules()
 
     if not changed:
-        print("✅ No new or changed modules detected.")
+        print("No new or changed modules detected.")
     else:
         for module in changed:
-            print(f"🧠 Generating test for: {module}")
+            print(f"Generating test for: {module}")
             try:
                 generate_test_file(module, output_dir, skip_if_exists=not args.force)
             except Exception as e:
-                print(f"❌ Failed for {module.name}: {e}")
+                print(f"Failed for {module.name}: {e}")
 
 if __name__ == "__main__":
     main()
