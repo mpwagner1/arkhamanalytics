@@ -1,5 +1,3 @@
-import pytest
-from pathlib import Path
 from arkhamanalytics.prompt_engine import get_prompt_for_module
 
 def test_prompt_contains_core_instructions(tmp_path):
