@@ -11,9 +11,16 @@ def extract_python_code(response_text: str) -> str:
     return response_text.strip()
 
 def replace_module_name(code: str, module_path: Path) -> str:
-    """Replaces 'your_module' in import with actual module name."""
-    module = module_path.stem
-    return code.replace("from your_module import", f"from {module} import")
+    """Replaces 'your_module' or similar placeholders with the correct module name."""
+    module_name = module_path.stem
+    lines = code.splitlines()
+    updated_lines = []
+    for line in lines:
+        if "from your_module" in line or "from your_module_name" in line:
+            updated_lines.append(f"from {module_name} import (")
+        else:
+            updated_lines.append(line)
+    return "\n".join(updated_lines)
 
 def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool = True) -> None:
     module_name = module_path.stem
@@ -30,7 +37,7 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
     prompt = f"Write Pytest unit tests for the following module:\n\n{module_code}"
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    print(f"Sending prompt to LLM for: {module_name}.py")
+    print(f"📤 Sending prompt to LLM for: {module_name}.py")
 
     response = client.chat.completions.create(
         model="gpt-4o",
@@ -51,4 +58,4 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
     with open(output_path, "w") as f:
         f.write(test_code)
 
-    print(f"Test written to: {output_path}")
+    print(f"✅ Test written to: {output_path}")
