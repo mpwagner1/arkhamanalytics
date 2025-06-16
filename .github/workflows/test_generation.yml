@@ -28,7 +28,7 @@ jobs:
 
       - name: 🧠 Run LLM Test Generator
         run: |
-          python scripts/run_llm_test_gen.py
+          PYTHONPATH=ingestion python ingestion/arkhamanalytics/run_llm_test_gen.py
 
       - name: 📬 Create Pull Request with Generated Tests
         uses: peter-evans/create-pull-request@v5
