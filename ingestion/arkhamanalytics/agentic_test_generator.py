@@ -4,6 +4,7 @@ from arkhamanalytics.prompt_engine import get_prompt_for_module
 
 def get_changed_modules() -> list[Path]:
     """Detect Python files changed in the last commit."""
+    repo_root = Path(__file__).resolve().parents[2]  # goes up to project root
     result = subprocess.run(
         ["git", "log", "--name-only", "-1", "--pretty=format:"],
         capture_output=True,
@@ -12,11 +13,19 @@ def get_changed_modules() -> list[Path]:
     )
     changed_files = result.stdout.strip().splitlines()
 
-    return [
-        Path(f).resolve()
-        for f in changed_files
-        if f.endswith(".py") and "test_" not in f and "scripts/" not in f
-    ]
+    filtered = []
+    for f in changed_files:
+        path = repo_root / f
+        if (
+            path.suffix == ".py"
+            and "test_" not in path.name
+            and "scripts" not in str(path)
+            and path.exists()
+        ):
+            filtered.append(path)
+
+    return filtered
+
 
 def main():
     changed_modules = get_changed_modules()
