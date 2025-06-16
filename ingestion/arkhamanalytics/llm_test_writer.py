@@ -35,14 +35,18 @@ def call_llm(prompt: str, model: str = "gpt-4") -> str:
     )
     return response["choices"][0]["message"]["content"].strip()
 
-def generate_test_file(module_path: Path, output_dir: Path) -> Path:
+def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool = True) -> Path:
     """Generate a test file using OpenAI and write it to ingestion/tests."""
+    test_filename = f"test_{module_path.stem}.py"
+    test_path = output_dir / test_filename
+
+    if skip_if_exists and test_path.exists():
+        print(f"⚠️ Skipping {test_path.name} (already exists).")
+        return test_path
+
     prompt = get_prompt_for_module(module_path)
     print(f"📤 Sending prompt to LLM for: {module_path.name}")
     test_code = call_llm(prompt)
-
-    test_filename = f"test_{module_path.stem}.py"
-    test_path = output_dir / test_filename
     test_path.write_text(test_code)
 
     print(f"Test file written: {test_path}")
