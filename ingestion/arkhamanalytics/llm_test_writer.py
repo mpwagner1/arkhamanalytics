@@ -11,13 +11,14 @@ def extract_python_code(response_text: str) -> str:
     return response_text.strip()
 
 def replace_module_name(code: str, module_path: Path) -> str:
-    """Replaces 'your_module' or similar placeholders with the correct module name."""
+    """Replaces placeholder with the correct import path."""
     module_name = module_path.stem
+    import_path = f"arkhamanalytics.{module_name}"
     lines = code.splitlines()
     updated_lines = []
     for line in lines:
         if "from your_module" in line or "from your_module_name" in line:
-            updated_lines.append(f"from {module_name} import (")
+            updated_lines.append(f"from {import_path} import (")
         else:
             updated_lines.append(line)
     return "\n".join(updated_lines)
