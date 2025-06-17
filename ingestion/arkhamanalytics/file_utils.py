@@ -109,13 +109,17 @@ def detect_and_read_file(
         logger.error(f"Error in detect_and_read_file: {str(e)}")
         raise RuntimeError(f"Failed to detect/read file {file_path}: {str(e)}")
 
-def resolve_file_path(container_name: str, file_pattern: str) -> str:
+def resolve_file_path_for_spark(container_name: str, file_pattern: str) -> str:
     """
-    Resolves a file path using container name and file pattern.
-    Raises an error if no match is found.
+    Resolves a path using /dbfs/mnt for globbing,
+    then returns a Spark-compatible path (dbfs:/mnt/...)
     """
     search_path = f"/dbfs/mnt/{container_name}/{file_pattern}"
     matched_files = glob(search_path)
     if not matched_files:
         raise FileNotFoundError(f"No file found for pattern: {search_path}")
-    return matched_files[0]
+    
+    # Convert /dbfs/mnt/... to dbfs:/mnt/...
+    path = Path(matched_files[0])
+    dbfs_path = str(path).replace("/dbfs", "dbfs:")
+    return dbfs_path
