@@ -11,26 +11,23 @@ logging.basicConfig(level=logging.INFO)
 
 
 def detect_file_encoding(file_path: str, sample_size: int = 100000) -> str:
-    """Detect file encoding using chardet. Only works on /dbfs paths."""
+    """Detect file encoding using chardet for local paths only."""
     if file_path.startswith("dbfs:/"):
-        file_path = file_path.replace("dbfs:/", "/dbfs/")
+        logger.info(f"Skipping encoding detection for Spark path: {file_path}")
+        return "utf-8"  # default for Spark-safe reads
 
-    if not exists(file_path):
-        raise FileNotFoundError(f"File not found: {file_path}")
+    local_path = file_path.replace("dbfs:/", "/dbfs/") if "dbfs:/" in file_path else file_path
 
-    with open(file_path, "rb") as f:
+    if not exists(local_path):
+        raise FileNotFoundError(f"File not found: {local_path}")
+
+    with open(local_path, "rb") as f:
         rawdata = f.read(sample_size)
 
     result = chardet.detect(rawdata)
     encoding = result["encoding"] or "utf-8"
     logger.info(f"Detected encoding for {file_path}: {encoding}")
     return encoding
-
-def get_file_extension(file_path: str) -> str:
-    """Returns the lowercase file extension (e.g., 'csv', 'xlsx', 'txt')."""
-    suffix = Path(file_path).suffix
-    return suffix.lower().replace(".", "") if suffix else ""
-
 
 def read_file_as_df(
     spark: SparkSession,
