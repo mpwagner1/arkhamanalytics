@@ -41,46 +41,34 @@ def read_file_as_df(
     start_cell: Optional[str] = None,
 ) -> DataFrame:
     """Read file into a PySpark DataFrame based on format and encoding."""
-    if file_path.startswith("dbfs:/"):
-        pass
-    else:
-        if not exists(file_path):
-            raise FileNotFoundError(f"File not found: {file_path}")
+    logger.info(f"Reading {file_format.upper()} file: {file_path}")
 
-    if encoding is None:
+    # Only detect encoding for local files
+    if encoding is None and not file_path.startswith("dbfs:/"):
         encoding = detect_file_encoding(file_path)
 
     try:
         if file_format == "csv":
-            logger.info(f"Reading CSV file: {file_path}")
             return (
                 spark.read.option("header", "true")
-                .option("encoding", encoding)
+                .option("encoding", encoding or "utf-8")
                 .csv(file_path)
             )
 
         elif file_format == "txt":
-            logger.info(f"Reading TXT file: {file_path}")
             return (
                 spark.read.option("header", "true")
-                .option("encoding", encoding)
+                .option("encoding", encoding or "utf-8")
                 .csv(file_path, sep="\t")
             )
 
         elif file_format in ["xls", "xlsx"]:
-            logger.info(f"Reading Excel file: {file_path}")
-    
-            # Default to "A1" if nothing is provided
-            sheet = sheet_name or "Sheet1"
-            cell = start_cell or "A1"
-            data_address = f"'{sheet}'!{cell}"
-    
             return (
                 spark.read.format("com.crealytics.spark.excel")
                 .option("header", "true")
                 .option("inferSchema", "true")
-                .option("dataAddress", data_address)
-                .option("maxRowsInMemory", 1000)
+                .option("dataAddress", start_cell or "A1")
+                .option("sheetName", sheet_name or "Sheet1")
                 .load(file_path)
             )
 
@@ -90,7 +78,6 @@ def read_file_as_df(
     except Exception as e:
         logger.error(f"Error reading file {file_path}: {str(e)}")
         raise RuntimeError(f"Failed to read file {file_path}: {str(e)}")
-
 
 def detect_and_read_file(
     spark: SparkSession,
