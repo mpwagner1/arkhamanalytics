@@ -38,7 +38,15 @@ def read_file_as_df(
     start_cell: Optional[str] = None,
 ) -> DataFrame:
     """Read file into a PySpark DataFrame based on format and encoding."""
-    logger.info(f"Reading {file_format.upper()} file: {file_path}")
+
+    logger.info(f"Attempting to read: {file_path}")
+    logger.info(f"Format: {file_format}")
+    logger.info(f"Encoding: {encoding}")
+
+    # Skip existence check for Spark paths
+    if not file_path.startswith("dbfs:/"):
+        if not exists(file_path):
+            raise FileNotFoundError(f"File not found: {file_path}")
 
     # Only detect encoding for local files
     if encoding is None and not file_path.startswith("dbfs:/"):
@@ -64,7 +72,7 @@ def read_file_as_df(
                 spark.read.format("com.crealytics.spark.excel")
                 .option("header", "true")
                 .option("inferSchema", "true")
-                .option("dataAddress", start_cell or "A1")
+                .option("dataAddress", (start_cell or "A1"))
                 .option("sheetName", sheet_name or "Sheet1")
                 .load(file_path)
             )
