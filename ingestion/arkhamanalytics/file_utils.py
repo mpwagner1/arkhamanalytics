@@ -11,24 +11,20 @@ logging.basicConfig(level=logging.INFO)
 
 
 def detect_file_encoding(file_path: str, sample_size: int = 100000) -> str:
-    """Detect file encoding using chardet. Only works on local paths."""
+    """Detect file encoding using chardet. Only works on /dbfs paths."""
     if file_path.startswith("dbfs:/"):
-        # Convert to local path for reading with Python
-        local_path = file_path.replace("dbfs:/", "/dbfs/")
-    else:
-        local_path = file_path
+        file_path = file_path.replace("dbfs:/", "/dbfs/")
 
-    if not exists(local_path):
-        raise FileNotFoundError(f"File not found: {local_path}")
+    if not exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
 
-    with open(local_path, "rb") as f:
+    with open(file_path, "rb") as f:
         rawdata = f.read(sample_size)
 
     result = chardet.detect(rawdata)
     encoding = result["encoding"] or "utf-8"
     logger.info(f"Detected encoding for {file_path}: {encoding}")
     return encoding
-
 
 def get_file_extension(file_path: str) -> str:
     """Returns the lowercase file extension (e.g., 'csv', 'xlsx', 'txt')."""
@@ -45,8 +41,11 @@ def read_file_as_df(
     start_cell: Optional[str] = None,
 ) -> DataFrame:
     """Read file into a PySpark DataFrame based on format and encoding."""
-    if not exists(file_path):
-        raise FileNotFoundError(f"File not found: {file_path}")
+    if file_path.startswith("dbfs:/"):
+        pass
+    else:
+        if not exists(file_path):
+            raise FileNotFoundError(f"File not found: {file_path}")
 
     if encoding is None:
         encoding = detect_file_encoding(file_path)
