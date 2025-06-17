@@ -4,6 +4,7 @@ from os.path import exists
 from pathlib import Path
 from typing import Optional
 from pyspark.sql import SparkSession, DataFrame
+from glob import glob
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -107,3 +108,14 @@ def detect_and_read_file(
     except Exception as e:
         logger.error(f"Error in detect_and_read_file: {str(e)}")
         raise RuntimeError(f"Failed to detect/read file {file_path}: {str(e)}")
+
+def resolve_file_path(container_name: str, file_pattern: str) -> str:
+    """
+    Resolves a file path using container name and file pattern.
+    Raises an error if no match is found.
+    """
+    search_path = f"/dbfs/mnt/{container_name}/{file_pattern}"
+    matched_files = glob(search_path)
+    if not matched_files:
+        raise FileNotFoundError(f"No file found for pattern: {search_path}")
+    return matched_files[0]
