@@ -11,16 +11,17 @@ logging.basicConfig(level=logging.INFO)
 
 
 def detect_file_encoding(file_path: str, sample_size: int = 100000) -> str:
-    """Detect file encoding using chardet."""
+    """Detect file encoding using chardet. Only works on local paths."""
     if file_path.startswith("dbfs:/"):
-        # DBFS Spark path — skip local file check
-        pass
+        # Convert to local path for reading with Python
+        local_path = file_path.replace("dbfs:/", "/dbfs/")
     else:
-        # Local path (e.g., for testing)
-        if not exists(file_path):
-            raise FileNotFoundError(f"File not found: {file_path}")
+        local_path = file_path
 
-    with open(file_path, "rb") as f:
+    if not exists(local_path):
+        raise FileNotFoundError(f"File not found: {local_path}")
+
+    with open(local_path, "rb") as f:
         rawdata = f.read(sample_size)
 
     result = chardet.detect(rawdata)
