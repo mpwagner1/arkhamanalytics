@@ -6,6 +6,7 @@ from typing import Optional
 from pyspark.sql import SparkSession, DataFrame
 from glob import glob
 
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -120,3 +121,9 @@ def resolve_file_path_for_spark(container_name: str, file_pattern: str) -> str:
     path = Path(matched_files[0])
     dbfs_path = str(path).replace("/dbfs", "dbfs:")
     return dbfs_path
+
+def get_file_extension(file_path: str) -> str:
+    """Returns the lowercase file extension (e.g., 'csv', 'xlsx', 'txt')."""
+    suffix = Path(file_path).suffix
+    return suffix.lower().replace(".", "") if suffix else ""
+
