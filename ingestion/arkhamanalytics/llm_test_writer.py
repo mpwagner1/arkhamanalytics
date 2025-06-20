@@ -3,6 +3,7 @@ import ast
 from pathlib import Path
 from openai import OpenAI
 
+
 def replace_module_name(code: str, module_path: Path) -> str:
     """Replace placeholder import with the actual module path."""
     module_name = module_path.stem
@@ -44,16 +45,20 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
         module_code = f.read()
 
     prompt = (
-        f"You are a senior Python test engineer. Generate only raw Python `pytest` test code for the given module.\n\n"
-        f"Guidelines:\n"
-        f"- DO NOT include Markdown formatting (no triple backticks).\n"
-        f"- Import from `arkhamanalytics.{module_name}`.\n"
-        f"- Use `pytest` + `unittest.mock` to mock all external I/O dependencies (e.g., file reads, `open()`, Spark `.read`, or `os.path.exists`).\n"
-        f"- Patch any functions that would access the real file system (like `open()` or `detect_file_encoding()`).\n"
-        f"- Assume all external interactions should be mocked to run in isolation.\n"
-        f"- Do not include prose, comments, or explanations.\n\n"
-        f"Write the test file for this module:\n\n{module_code}"
-    )
+    f"You are a senior Python test engineer. Generate only raw Python `pytest` test code "
+    f"for the given module.\n\n"
+    f"Guidelines:\n"
+    f"- DO NOT include Markdown formatting (no triple backticks).\n"
+    f"- Import from `arkhamanalytics.{module_name}`.\n"
+    f"- Use `pytest` + `unittest.mock` to mock all external I/O dependencies "
+    f"(e.g., file reads, `open()`, Spark `.read`, or `os.path.exists`).\n"
+    f"- Patch any functions that would access the real file system "
+    f"(like `open()` or `detect_file_encoding()`).\n"
+    f"- Assume all external interactions should be mocked to run in isolation.\n"
+    f"- Do not include prose, comments, or explanations.\n\n"
+    f"Write the test file for this module:\n\n{module_code}"
+)
+
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -68,13 +73,6 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
     )
 
     test_code = response.choices[0].message.content
-
-    # Strip markdown-style formatting
-    test_code = test_code.replace("```python", "").replace("```", "").strip()
-
-    print("Generated test code (first 5 lines):")
-    print("\n".join(test_code.splitlines()[:5]))
-
     test_code = replace_module_name(test_code, module_path)
 
     if not is_valid_python(test_code):
