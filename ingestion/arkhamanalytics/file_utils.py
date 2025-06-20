@@ -6,10 +6,8 @@ from typing import Optional
 from pyspark.sql import SparkSession, DataFrame
 from glob import glob
 
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-
 
 def detect_file_encoding(file_path: str, sample_size: int = 100000) -> str:
     """Detect file encoding using chardet for local paths only."""
