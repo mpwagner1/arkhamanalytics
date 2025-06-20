@@ -2,7 +2,6 @@ import logging
 from typing import Any, Dict, Optional
 from dataclasses import dataclass
 
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
