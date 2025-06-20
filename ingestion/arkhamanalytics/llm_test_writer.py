@@ -73,3 +73,4 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
         out_file.write(test_code)
 
     print(f"Test file written to: {output_path}")
+    
