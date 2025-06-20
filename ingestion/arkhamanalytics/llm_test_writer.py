@@ -44,11 +44,15 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
         module_code = f.read()
 
     prompt = (
-        f"You are a Python test engineer. Write Pytest-style unit tests ONLY as raw Python code. "
-        f"DO NOT use markdown formatting like triple backticks. "
-        f"Import functions from `arkhamanalytics.{module_name}`. "
-        f"The code must be valid and runnable as-is. No prose, comments, or explanations.\n\n"
-        f"{module_code}"
+        f"You are a senior Python test engineer. Generate only raw Python `pytest` test code for the given module.\n\n"
+        f"Guidelines:\n"
+        f"- DO NOT include Markdown formatting (no triple backticks).\n"
+        f"- Import from `arkhamanalytics.{module_name}`.\n"
+        f"- Use `pytest` + `unittest.mock` to mock all external I/O dependencies (e.g., file reads, `open()`, Spark `.read`, or `os.path.exists`).\n"
+        f"- Patch any functions that would access the real file system (like `open()` or `detect_file_encoding()`).\n"
+        f"- Assume all external interactions should be mocked to run in isolation.\n"
+        f"- Do not include prose, comments, or explanations.\n\n"
+        f"Write the test file for this module:\n\n{module_code}"
     )
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
