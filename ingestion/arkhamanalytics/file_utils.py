@@ -53,7 +53,30 @@ def read_file_as_df(
     if encoding is None and not file_path.startswith("dbfs:/"):
         encoding = detect_file_encoding(file_path)
 
+def read_file_as_df(
+    spark: SparkSession,
+    file_path: str,
+    file_format: str,
+    encoding: Optional[str] = None,
+    sheet_name: Optional[str] = None,
+    start_cell: Optional[str] = None,
+) -> DataFrame:
+    """Read file into a PySpark DataFrame based on format and encoding."""
+
+    logger.info(f"Attempting to read: {file_path}")
+    logger.info(f"Format: {file_format}")
+    logger.info(f"Encoding: {encoding}")
+
     try:
+        # Skip existence check for Spark paths
+        if not file_path.startswith("dbfs:/"):
+            if not exists(file_path):
+                raise FileNotFoundError(f"File not found: {file_path}")
+
+        # Only detect encoding for local files
+        if encoding is None and not file_path.startswith("dbfs:/"):
+            encoding = detect_file_encoding(file_path)
+
         if file_format == "csv":
             return (
                 spark.read.option("header", "true")
@@ -68,7 +91,7 @@ def read_file_as_df(
                 .csv(file_path, sep="\t")
             )
 
-        if file_format.lower() == "xlsx":
+        elif file_format.lower() == "xlsx":
             data_address = f"'{sheet_name}'!{start_cell}"
             reader = (
                 spark.read.format("com.crealytics.spark.excel")
@@ -79,14 +102,15 @@ def read_file_as_df(
                 .option("encoding", encoding)
                 .load(file_path)
             )
-        return reader
-        
-        else:
-            raise ValueError(f"Unsupported file format: {file_format}")
+            return reader
+
+        # Final fallback
+        raise ValueError(f"Unsupported file format: {file_format}")
 
     except Exception as e:
         logger.error(f"Error reading file {file_path}: {str(e)}")
         raise RuntimeError(f"Failed to read file {file_path}: {str(e)}")
+
 
 def detect_and_read_file(
     spark: SparkSession,
