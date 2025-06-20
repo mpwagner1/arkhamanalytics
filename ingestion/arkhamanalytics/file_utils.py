@@ -79,7 +79,8 @@ def read_file_as_df(
                 .option("encoding", encoding)
                 .load(file_path)
             )
-
+        return reader
+        
         else:
             raise ValueError(f"Unsupported file format: {file_format}")
 
