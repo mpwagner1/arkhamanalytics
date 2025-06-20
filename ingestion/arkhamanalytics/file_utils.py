@@ -44,29 +44,6 @@ def read_file_as_df(
     logger.info(f"Format: {file_format}")
     logger.info(f"Encoding: {encoding}")
 
-    # Skip existence check for Spark paths
-    if not file_path.startswith("dbfs:/"):
-        if not exists(file_path):
-            raise FileNotFoundError(f"File not found: {file_path}")
-
-    # Only detect encoding for local files
-    if encoding is None and not file_path.startswith("dbfs:/"):
-        encoding = detect_file_encoding(file_path)
-
-def read_file_as_df(
-    spark: SparkSession,
-    file_path: str,
-    file_format: str,
-    encoding: Optional[str] = None,
-    sheet_name: Optional[str] = None,
-    start_cell: Optional[str] = None,
-) -> DataFrame:
-    """Read file into a PySpark DataFrame based on format and encoding."""
-
-    logger.info(f"Attempting to read: {file_path}")
-    logger.info(f"Format: {file_format}")
-    logger.info(f"Encoding: {encoding}")
-
     try:
         # Skip existence check for Spark paths
         if not file_path.startswith("dbfs:/"):
