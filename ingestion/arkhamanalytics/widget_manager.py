@@ -96,8 +96,6 @@ class WidgetManager:
     
         logger.info("Known widgets removed.")
 
-
-
 @dataclass
 class ProcessingConfig:
     container_name: str
