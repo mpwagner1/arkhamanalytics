@@ -5,7 +5,6 @@ from dataclasses import dataclass
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-
 class WidgetManager:
     def __init__(self, dbutils_ref=None):
         """Initialize with an optional dbutils reference (for testing or Databricks)."""
