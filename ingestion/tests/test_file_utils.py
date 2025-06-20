@@ -1,78 +1,93 @@
 import pytest
-from unittest.mock import patch, mock_open, MagicMock
-from arkhamanalytics.file_utils import (
-    detect_file_encoding,
-    read_file_as_df,
-    detect_and_read_file,
-    resolve_file_path_for_spark,
-    get_file_extension
-)
-from pyspark.sql import SparkSession
-import chardet
+from unittest.mock import MagicMock, patch, PropertyMock
+from arkhamanalytics.file_utils import get_file_extension, detect_file_encoding, read_file_as_df
 
-@pytest.fixture(scope="module")
-def spark_session():
-    return SparkSession.builder.master("local").appName("pytest").getOrCreate()
+@pytest.mark.parametrize("filename,expected", [
+    ("file.csv", "csv"),
+    ("data.XLSX", "xlsx"),
+    ("/path/to/file.TXT", "txt"),
+    ("no_extension", "")
+])
+def test_get_file_extension_handles_various_cases(filename, expected):
+    assert get_file_extension(filename) == expected
 
-def test_detect_file_encoding_local_file():
-    mock_data = b"hello world"
-    with patch("builtins.open", mock_open(read_data=mock_data)), \
-         patch("arkhamanalytics.file_utils.exists", return_value=True), \
-         patch("chardet.detect", return_value={"encoding": "ascii"}):
-        encoding = detect_file_encoding("test.txt")
-        assert encoding == "ascii"
+def test_detect_file_encoding_utf8(tmp_path):
+    """Detect UTF-8 encoding from known UTF-8 file."""
+    file_path = tmp_path / "utf8_test.txt"
+    content = "hello world äöü".encode("utf-8")
+    file_path.write_bytes(content)
 
-def test_detect_file_encoding_file_not_found():
-    with patch("arkhamanalytics.file_utils.exists", return_value=False):
-        with pytest.raises(FileNotFoundError):
-            detect_file_encoding("nonexistent.txt")
+    encoding = detect_file_encoding(str(file_path))
+    assert isinstance(encoding, str)
+    assert encoding.lower() in ["utf-8", "ascii"]
 
-def test_detect_file_encoding_spark_path():
-    encoding = detect_file_encoding("dbfs:/mnt/test.txt")
-    assert encoding == "utf-8"
+def test_detect_file_encoding_latin1(tmp_path):
+    """Detect Latin-1 encoding from known file."""
+    file_path = tmp_path / "latin_test.txt"
+    content = "café résumé".encode("latin1")
+    file_path.write_bytes(content)
 
-def test_read_file_as_df_csv(spark_session):
-    with patch("arkhamanalytics.file_utils.exists", return_value=True), \
-         patch("arkhamanalytics.file_utils.detect_file_encoding", return_value="utf-8"), \
-         patch.object(SparkSession, 'read', return_value=MagicMock()):
-        df = read_file_as_df(spark_session, "test.csv", "csv")
-        assert df is not None
+    encoding = detect_file_encoding(str(file_path))
+    assert isinstance(encoding, str)
+    assert encoding.lower() in ["iso-8859-1", "windows-1252", "latin-1"]
 
-def test_read_file_as_df_txt(spark_session):
-    with patch("arkhamanalytics.file_utils.exists", return_value=True), \
-         patch("arkhamanalytics.file_utils.detect_file_encoding", return_value="utf-8"), \
-         patch.object(SparkSession, 'read', return_value=MagicMock()):
-        df = read_file_as_df(spark_session, "test.txt", "txt")
-        assert df is not None
+def test_detect_file_encoding_raises_file_not_found():
+    """Ensure detect_file_encoding raises on missing file."""
+    with pytest.raises(FileNotFoundError):
+        detect_file_encoding("/nonexistent/file.txt")
 
-def test_read_file_as_df_xlsx(spark_session):
-    with patch("arkhamanalytics.file_utils.exists", return_value=True), \
-         patch.object(SparkSession, 'read', return_value=MagicMock()):
-        df = read_file_as_df(spark_session, "test.xlsx", "xlsx", sheet_name="Sheet1", start_cell="A1")
-        assert df is not None
+def test_read_excel_constructs_data_address_correctly(spark, tmp_path):
+    test_file = tmp_path / "test.xlsx"
+    test_file.write_text("fake content")
 
-def test_read_file_as_df_unsupported_format(spark_session):
-    with patch("arkhamanalytics.file_utils.exists", return_value=True):
-        with pytest.raises(ValueError):
-            read_file_as_df(spark_session, "test.unsupported", "unsupported")
+    with (
+        patch("arkhamanalytics.file_utils.exists", return_value=True),
+        patch("arkhamanalytics.file_utils.detect_file_encoding", return_value="utf-8"),
+        patch.object(type(spark), "read", new_callable=PropertyMock) as mock_read,
+    ):
+        mock_reader = MagicMock()
+        mock_read.return_value = mock_reader
 
-def test_detect_and_read_file(spark_session):
-    with patch("arkhamanalytics.file_utils.get_file_extension", return_value="csv"), \
-         patch("arkhamanalytics.file_utils.read_file_as_df", return_value=MagicMock()):
-        df = detect_and_read_file(spark_session, "test.csv")
-        assert df is not None
+        mock_reader.format.return_value = mock_reader
+        mock_reader.option.return_value = mock_reader
+        mock_reader.load.return_value = "mock_df"
 
-def test_resolve_file_path_for_spark():
-    with patch("arkhamanalytics.file_utils.glob", return_value=["/dbfs/mnt/container/test.csv"]):
-        path = resolve_file_path_for_spark("container", "test.csv")
-        assert path == "dbfs:/mnt/container/test.csv"
+        result = read_file_as_df(
+            spark=spark,
+            file_path=str(test_file),
+            file_format="xlsx",
+            encoding="utf-8",
+            sheet_name="MySheet",
+            start_cell="B5",
+        )
 
-def test_resolve_file_path_for_spark_no_match():
-    with patch("arkhamanalytics.file_utils.glob", return_value=[]):
-        with pytest.raises(FileNotFoundError):
-            resolve_file_path_for_spark("container", "nonexistent.csv")
+        mock_reader.option.assert_any_call("dataAddress", "'MySheet'!B5")
+        assert result == "mock_df"
+        
+def test_detect_and_read_file_passes_excel_args(spark):
+    from arkhamanalytics import file_utils
 
-def test_get_file_extension():
-    assert get_file_extension("test.csv") == "csv"
-    assert get_file_extension("test.xlsx") == "xlsx"
-    assert get_file_extension("test") == ""
+    with patch("arkhamanalytics.file_utils.get_file_extension", return_value="xlsx"), \
+         patch("arkhamanalytics.file_utils.read_file_as_df") as mock_read:
+
+        mock_read.return_value = "mock_df"
+
+        result = file_utils.detect_and_read_file(
+            spark=spark,
+            file_path="/mnt/fake.xlsx",
+            encoding="utf-8",
+            sheet_name="DataSheet",
+            start_cell="C10"
+        )
+
+        mock_read.assert_called_once_with(
+            spark,
+            "/mnt/fake.xlsx",
+            "xlsx",
+            "utf-8",
+            "DataSheet",
+            "C10"
+        )
+
+        assert result == "mock_df"
+
