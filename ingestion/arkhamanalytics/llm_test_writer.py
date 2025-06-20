@@ -3,7 +3,6 @@ import ast
 from pathlib import Path
 from openai import OpenAI
 
-
 def replace_module_name(code: str, module_path: Path) -> str:
     """Replace placeholder import with the actual module path."""
     module_name = module_path.stem
@@ -45,9 +44,10 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
         module_code = f.read()
 
     prompt = (
-        "Write only the Pytest unit tests as valid Python code for the following module. "
-        "Do not include markdown formatting, explanations, or commentary. "
-        "Ensure the import block is complete and all parentheses are closed.\n\n"
+        f"You are a Python test engineer. Write Pytest-style unit tests ONLY as raw Python code. "
+        f"DO NOT use markdown formatting like triple backticks. "
+        f"Import functions from `arkhamanalytics.{module_name}`. "
+        f"The code must be valid and runnable as-is. No prose, comments, or explanations.\n\n"
         f"{module_code}"
     )
 
@@ -64,6 +64,13 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
     )
 
     test_code = response.choices[0].message.content
+
+    # Strip markdown-style formatting
+    test_code = test_code.replace("```python", "").replace("```", "").strip()
+
+    print("Generated test code (first 5 lines):")
+    print("\n".join(test_code.splitlines()[:5]))
+
     test_code = replace_module_name(test_code, module_path)
 
     if not is_valid_python(test_code):
@@ -73,4 +80,3 @@ def generate_test_file(module_path: Path, output_dir: Path, skip_if_exists: bool
         out_file.write(test_code)
 
     print(f"Test file written to: {output_path}")
-    
