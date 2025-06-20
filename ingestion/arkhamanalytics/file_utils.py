@@ -68,13 +68,15 @@ def read_file_as_df(
                 .csv(file_path, sep="\t")
             )
 
-        elif file_format in ["xls", "xlsx"]:
-            return (
+        if file_format.lower() == "xlsx":
+            data_address = f"'{sheet_name}'!{start_cell}"
+            reader = (
                 spark.read.format("com.crealytics.spark.excel")
                 .option("header", "true")
                 .option("inferSchema", "true")
-                .option("dataAddress", (start_cell or "A1"))
-                .option("sheetName", sheet_name or "Sheet1")
+                .option("dataAddress", data_address)
+                .option("sheetName", sheet_name)
+                .option("encoding", encoding)
                 .load(file_path)
             )
 
